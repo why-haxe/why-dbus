@@ -22,6 +22,9 @@ jobs:
     - name: Run DBus
       run: export DBUS_SESSION_BUS_ADDRESS=`dbus-daemon --fork --config-file=/usr/share/dbus-1/session.conf --print-address`
     
+    - name: Check DBus
+      run: echo $DBUS_SESSION_BUS_ADDRESS
+    
     - name: Check out repo
       uses: actions/checkout@v2
     
