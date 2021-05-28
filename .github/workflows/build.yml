@@ -20,9 +20,7 @@ jobs:
 
     steps:
     - name: Run DBus
-      run: |
-        export DBUS_SESSION_BUS_ADDRESS=`dbus-daemon --fork --config-file=/usr/share/dbus-1/session.conf --print-address`
-        echo $DBUS_SESSION_BUS_ADDRESS
+      run: echo "DBUS_SESSION_BUS_ADDRESS=`dbus-daemon --fork --config-file=/usr/share/dbus-1/session.conf --print-address`" >> $GITHUB_ENV
     
     - name: Check DBus
       run: echo $DBUS_SESSION_BUS_ADDRESS
