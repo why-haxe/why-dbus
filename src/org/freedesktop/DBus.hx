@@ -3,8 +3,8 @@ package org.freedesktop;
 import why.dbus.*;
 
 interface DBus {
-	@:read final features:Array<String>;
-	@:read final interfaces:Array<String>;
+	@:readonly final features:Array<String>;
+	@:readonly final interfaces:Array<String>;
 	function listNames():Array<String>;
 	function getConnectionUnixProcessID(connectionName:String):UInt;
 }

@@ -32,6 +32,10 @@ class Object {
 						switch f.type {
 							case TFun(args, ret):
 								final argSigs = args.map(arg -> SignatureTools.fromType(arg.t).force());
+								final parser = switch SignatureTools.fromType(ret) {
+									case None: macro __parseEmptyResponse;
+									case Some(retSig): macro __parseResponse.bind($v{retSig});
+								}
 							
 								def.fields.push({
 									access: [APublic],
@@ -45,34 +49,10 @@ class Object {
 											destination: __destination,
 											path: __path,
 											iface: $v{iface},
+											member: $v{capitalize(f.name)},
 											signature: $v{argSigs},
 											body: $a{args.map(arg -> macro $i{arg.name})},
-											member: $v{capitalize(f.name)},
-										}).next(msg -> {
-											${switch SignatureTools.fromType(ret) {
-												case None:
-													macro switch msg.signature {
-														case []: 
-															macro tink.core.Promise.NOISE;
-														case sigs:
-															new tink.core.Error('Unexpected return of type "' + why.dbus.Signature.SignatureTools.toTypeCode(sigs) + '" ');
-													}
-													
-												case Some(retSig):
-													macro switch msg.signature {
-														case []: 
-															new tink.core.Error('Unexpected empty return');
-														case [sig]:
-															if(sig.eq($v{retSig}))
-																tink.core.Promise.resolve(msg.body[0]);
-															else
-																new tink.core.Error('Unexpected return type, perhaps the definition is wrong? Expected "' + $v{retSig.toSingleTypeCode()} +'", got "' + why.dbus.Signature.SignatureTools.toTypeCode(msg.signature) + '"');
-														case v:
-															new tink.core.Error('Multi-return is not supported.');
-													}
-											}}
-												
-										}),
+										}).next($parser),
 									}),
 								});
 							case t:
@@ -86,7 +66,6 @@ class Object {
 								
 								init.push(macro $i{f.name} = new why.dbus.Property<$ct>(__transport, __destination, __path, $v{iface}, $v{capitalize(f.name)}, $v{SignatureTools.fromType(t).force()}));
 						}
-					
 					
 					def.pack = ['why', 'dbus'];
 					def;

@@ -24,7 +24,6 @@ class ObjectTest {
 		return asserts;
 	}
 	
-	@:include
 	public function property() {
 		final transport = why.dbus.transport.NodeDBusNext.sessionBus();
 		final obj:Interface<org.freedesktop.DBus> = new Object<org.freedesktop.DBus>(transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
@@ -49,10 +48,7 @@ class ObjectTest {
 				
 				final ifaces = map['Interfaces'];
 				asserts.assert(ifaces.signature.match(Array(String)));
-				for(v in (ifaces.value:Array<String>)) {
-					trace(v);
-					asserts.assert(Std.is(v, String));
-				}
+				for(v in (ifaces.value:Array<String>)) asserts.assert(Std.is(v, String));
 				
 				Noise;
 			})

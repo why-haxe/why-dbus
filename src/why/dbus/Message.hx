@@ -21,3 +21,10 @@ enum abstract MessageType(Int) to Int {
 	final Error = 3;
 	final Signal = 4;
 }
+
+enum abstract MessageFlag(Int) to Int {
+	final NoReplyExpected = 1;
+	final NoAutoStart = 2;
+	final Async = 64;
+	
+}

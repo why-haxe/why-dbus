@@ -34,7 +34,12 @@ class Interface {
 									access: [AFinal],
 									name: f.name,
 									pos: f.pos,
-									kind: FVar(macro:why.dbus.Property<$ct>),
+									kind: FVar(switch [f.meta.has(':readonly'), f.meta.has(':writeonly')] {
+										case [true, true]: f.pos.error('Either @:readonly or @:writeonly, but not both');
+										case [true, false]: macro:why.dbus.Property.ReadableProperty<$ct>;
+										case [false, true]: macro:why.dbus.Property.WritableProperty<$ct>;
+										case [false, false]: macro:why.dbus.Property.ReadWriteProperty<$ct>;
+									}),
 								});
 						}
 					def.kind = TDClass(null, [], true, false, false);

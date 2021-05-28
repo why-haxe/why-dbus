@@ -86,7 +86,7 @@ class NodeDBusNext implements Transport {
 				((value:js.node.Buffer)).hxToBytes();
 			case Variant:
 				final value:DBusVariant = value;
-				{signature: SignatureTools.fromTypeCode(value.signature).sure()[0], value: value.value}
+				new Variant(SignatureTools.fromTypeCode(value.signature).sure()[0], value.value);
 			case _:
 				value;
 		}
