@@ -19,8 +19,14 @@ class Object {
 					
 					final ct = type.toComplex();
 					final iface = ct.toString();
+					final init = [];
 					
-					final def = macro class $name extends why.dbus.Object.ObjectBase implements why.dbus.Interface<$ct> {}
+					final def = macro class $name extends why.dbus.Object.ObjectBase implements why.dbus.Interface<$ct> {
+						public function new(transport, destination, path) {
+							super(transport, destination, path);
+							$b{init}
+						}
+					}
 					
 					for(f in fields) 
 						switch f.type {
@@ -69,8 +75,16 @@ class Object {
 										}),
 									}),
 								});
-							case _:
-								throw 'TODO';
+							case t:
+								final ct = t.toComplex();
+								def.fields.push({
+									access: [APublic, AFinal],
+									name: f.name,
+									pos: f.pos,
+									kind: FVar(macro:why.dbus.Property<$ct>),
+								});
+								
+								init.push(macro $i{f.name} = new why.dbus.Property<$ct>(__transport, __destination, __path, $v{iface}, $v{capitalize(f.name)}, $v{SignatureTools.fromType(t).force()}));
 						}
 					
 					

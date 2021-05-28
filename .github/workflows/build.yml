@@ -14,6 +14,7 @@ jobs:
       matrix:
         haxe-version:
           - stable
+          - latest
           - nightly
         target: 
           - node
@@ -21,9 +22,6 @@ jobs:
     steps:
     - name: Run DBus
       run: echo "DBUS_SESSION_BUS_ADDRESS=`dbus-daemon --fork --config-file=/usr/share/dbus-1/session.conf --print-address`" >> $GITHUB_ENV
-    
-    - name: Check DBus
-      run: echo $DBUS_SESSION_BUS_ADDRESS
     
     - name: Check out repo
       uses: actions/checkout@v2

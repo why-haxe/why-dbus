@@ -13,6 +13,4 @@ class ObjectBase {
 		__destination = destination;
 		__path = path;
 	}
-	
-	
 }

@@ -134,7 +134,7 @@ class SignatureTools {
 	
 	#if macro
 	public static function fromType(type:haxe.macro.Type):Option<Signature> {
-		return switch type {
+		return switch type.reduce() {
 			case _.getID() => 'Void': None;
 			case _.getID() => 'Bool': Some(Boolean);
 			case _.getID() => 'Int': Some(Int32);
@@ -142,7 +142,9 @@ class SignatureTools {
 			case _.getID() => 'Float': Some(Double);
 			case _.getID() => 'String': Some(String);
 			case _.getID() => 'haxe.io.Bytes': Some(Array(Byte));
+			case _.getID() => 'why.dbus.Variant': Some(Variant);
 			case TInst(_.get() => {name: 'Array', pack: []}, [v]): Some(Array(fromType(v).force()));
+			case TAbstract(_.get() => {name: 'Map', pack: ['haxe', 'ds']}, [k, v]): Some(Array(DictEntry(fromType(k).force(), fromType(v).force())));
 			case v: throw '$v not supported';
 		}
 	}

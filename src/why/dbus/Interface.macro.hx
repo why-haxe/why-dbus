@@ -17,19 +17,26 @@ class Interface {
 				case Success(fields):
 					final def = macro class $name {}
 					for(f in fields)
-						def.fields.push({
-							name: f.name,
-							pos: f.pos,
-							kind: switch f.type {
-								case TFun(args, ret):
-									FFun({
+						switch f.type {
+							case TFun(args, ret):
+								def.fields.push({
+									name: f.name,
+									pos: f.pos,
+									kind: FFun({
 										args: args.map(arg -> ({name: arg.name, type: arg.t.toComplex(), opt: arg.opt}:FunctionArg)),
 										ret: asynchronize(ret),
-									});
-								case _:
-									throw 'TODO: [why.dbus.Interface] handle non function in ';
-							}
-						});
+									}),
+								});
+						
+							case t:
+								final ct = t.toComplex();
+								def.fields.push({
+									access: [AFinal],
+									name: f.name,
+									pos: f.pos,
+									kind: FVar(macro:why.dbus.Property<$ct>),
+								});
+						}
 					def.kind = TDClass(null, [], true, false, false);
 					def.pack = ['why', 'dbus'];
 					def;
