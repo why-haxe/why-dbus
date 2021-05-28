@@ -1,0 +1,22 @@
+[{
+	access: [APublic]
+	doc: null
+	kind: FFun({
+		args: []
+		expr: {
+			expr: EBlock([])
+			pos: #pos
+		}
+		params: []
+		ret: TPath({
+			name: Promise
+			pack: [tink, core]
+			params: [TPType(null <- expected enum value)]
+			sub: null
+		})
+	})
+	meta: []
+	name: new
+	pos: #pos
+}]
+line 14: expected enum value
