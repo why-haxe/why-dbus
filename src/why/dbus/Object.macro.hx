@@ -22,6 +22,7 @@ class Object {
 					final init = [];
 					
 					final def = macro class $name extends why.dbus.Object.ObjectBase implements why.dbus.Interface<$ct> {
+						final __iface:String = $v{iface};
 						public function new(transport, destination, path) {
 							super(transport, destination, path);
 							$b{init}
@@ -29,7 +30,7 @@ class Object {
 					}
 					
 					for(f in fields) 
-						switch f.type {
+						switch f.type.reduce() {
 							case TFun(args, ret):
 								final argSigs = args.map(arg -> SignatureTools.fromType(arg.t).force());
 								final parser = switch SignatureTools.fromType(ret) {
@@ -48,13 +49,33 @@ class Object {
 											type: MethodCall,
 											destination: __destination,
 											path: __path,
-											iface: $v{iface},
+											iface: __iface,
 											member: $v{capitalize(f.name)},
 											signature: $v{argSigs},
 											body: $a{args.map(arg -> macro $i{arg.name})},
 										}).next($parser),
 									}),
 								});
+							case TAbstract(_.get() => {name: 'Signal', pack: ['tink', 'core']}, [v]):
+								final sig = SignatureTools.fromType(v).force();
+								def.fields.push({
+									access: [APublic, AFinal],
+									name: f.name,
+									pos: f.pos,
+									kind: FVar(f.type.toComplex()),
+								});
+								
+								init.push(macro $i{f.name} = __transport.signals.select(msg -> {
+									if(
+										msg.path == __path &&
+										msg.iface == __iface && 
+										msg.member == $v{capitalize(f.name)} &&
+										why.dbus.Signature.SignatureTools.toTypeCode(msg.signature) == $v{sig.toSingleTypeCode()}
+									)
+										Some(msg.body[0]);
+									else
+										None;
+								}));
 							case t:
 								final ct = t.toComplex();
 								def.fields.push({
@@ -64,7 +85,7 @@ class Object {
 									kind: FVar(macro:why.dbus.Property<$ct>),
 								});
 								
-								init.push(macro $i{f.name} = new why.dbus.Property<$ct>(__transport, __destination, __path, $v{iface}, $v{capitalize(f.name)}, $v{SignatureTools.fromType(t).force()}));
+								init.push(macro $i{f.name} = new why.dbus.Property<$ct>(__transport, __destination, __path, __iface, $v{capitalize(f.name)}, $v{SignatureTools.fromType(t).force()}));
 						}
 					
 					def.pack = ['why', 'dbus'];

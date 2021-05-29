@@ -8,18 +8,26 @@ import haxe.DynamicAccess;
 using tink.CoreApi;
 
 class NodeDBusNext implements Transport {
-	
+	public final signals:Signal<Message>;
 	final bus:DBus;
 	
 	public function new(bus) {
 		this.bus = bus;
+		
+		this.signals = new Signal(cb -> {
+			bus.on('message', function onMessage(message) switch fromNativeMessage(message) {
+				case Success(msg) if(msg.type == Signal): cb(msg);
+				case _: // swallow
+			});
+			() -> bus.off('message', onMessage);
+		});
 	}
 	
 	public static inline function systemBus()
 		return new NodeDBusNext(DBus.systemBus());
 	
-	public static inline function sessionBus()
-		return new NodeDBusNext(DBus.sessionBus());
+	public static inline function sessionBus(?opt)
+		return new NodeDBusNext(DBus.sessionBus(opt));
 	
 	public function call(message:Message):Promise<Message> {
 		return Promise.ofJsPromise(bus.call(toNativeMessage(message))).next(fromNativeMessage);
@@ -96,8 +104,10 @@ class NodeDBusNext implements Transport {
 @:jsRequire('dbus-next')
 private extern class DBus {
 	static function systemBus():DBus;
-	static function sessionBus():DBus;
+	static function sessionBus(?opt:{}):DBus;
 	function call(message:DBusMessage):js.lib.Promise<DBusMessage>;
+	function on(name:String, f:haxe.Constraints.Function):Void;
+	function off(name:String, f:haxe.Constraints.Function):Void;
 }
 
 @:jsRequire('dbus-next', 'Variant')
