@@ -17,21 +17,37 @@ class ObjectBase {
 		__path = path;
 	}
 	
-	function __filterSignal<T>(iface, name, signature:SignatureCode, extract:Message->T, message:Message):Option<T> {
-		// trace('================================');
-		// trace('path', message.path, __path);
-		// trace('iface', message.iface, iface);
-		// trace('member', message.member, name);
-		// trace('signature', message.signature, signature);
-		return if(
-			(__path == null || message.path == __path) &&
-			message.iface == iface && 
-			message.member == name &&
-			message.signature == signature
-		)
-			Some(extract(message));
-		else
-			None;
+	function __signal<T>(iface:String, member:String, signature:SignatureCode):Signal<T> {
+		return new Signal(cb -> {
+			final binding = __transport.signals.select(
+				message -> {
+					return if(
+						(__path == null || message.path == __path) &&
+						message.iface == iface && 
+						message.member == member &&
+						message.signature == signature
+					)
+						Some(cast message.body);
+					else
+						None;
+				}
+			).handle(cb);
+			final registrar = new why.dbus.Object<org.freedesktop.DBus>(__transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+			final rule = new why.dbus.MatchRule({type: Signal, sender: __destination, path: __path, iface: iface, member: member}).toString();
+			
+			registrar
+				.addMatch(rule)
+				.eager();
+				// .handle(o -> switch o {
+				// 	case Success(_): trace('registered signal: $rule');
+				// 	case Failure(e): trace('failed to register signal: $rule, reason: $e');
+				// });
+				
+			() -> {
+				registrar.removeMatch(rule).eager();
+				binding.cancel();
+			}
+		});
 	}
 	
 	function __property<T>(iface, name, signature):Property<T> {
@@ -50,7 +66,7 @@ class ObjectBase {
 		}).next(parser);
 	}
 	
-	function __parseEmptyResponse(message:Message):Promise<Noise> {
+	static function __parseEmptyResponse(message:Message):Promise<Noise> {
 		return 
 			if(message.signature.isEmpty())
 				Promise.NOISE;
@@ -58,7 +74,7 @@ class ObjectBase {
 				new Error('Unexpected return of type "${message.signature}"');
 	}
 	
-	function __parseResponse<T>(expectedSignature:SignatureCode, message:Message):Promise<T> {
+	static function __parseResponse<T>(expectedSignature:SignatureCode, message:Message):Promise<T> {
 		return
 			if(message.signature.isEmpty())
 				new Error('Unexpected empty return');

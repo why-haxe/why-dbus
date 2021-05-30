@@ -30,13 +30,17 @@ class Object {
 						}
 					}
 					
-					for(f in fields) 
+					for(f in fields) {
+						final name = switch f.meta.extract(':member') {
+							case []: capitalize(f.name);
+							case [{params: [{expr: EConst(CString(name))}]}]: name;
+							case _: f.pos.error('Invalid use of @:member');
+						}
 						switch f.type.reduce() {
 							case TFun(args, ret):
-								final argSigs:SignatureCode = args.map(arg -> arg.t);
 								final parser = {
 									final sig = SignatureCode.fromType(ret);
-									sig.isEmpty() ? macro __parseEmptyResponse : macro __parseResponse.bind(${makeSigExpr(sig)});
+									sig.isEmpty() ? macro why.dbus.Object.ObjectBase.__parseEmptyResponse : macro why.dbus.Object.ObjectBase.__parseResponse.bind(${sig});
 								}
 							
 								def.fields.push({
@@ -46,12 +50,17 @@ class Object {
 									kind: FFun({
 										args: args.map(arg -> ({name: arg.name, type: arg.t.toComplex(), opt: arg.opt}:FunctionArg)),
 										ret: asynchronize(ret),
-										expr: macro return __call(__iface, $v{capitalize(f.name)}, ${makeSigExpr(argSigs)}, $a{args.map(arg -> macro $i{arg.name})}, $parser),
+										expr: macro return __call(
+											__iface,
+											$v{name},
+											${(args.map(arg -> arg.t):SignatureCode)},
+											$a{args.map(arg -> macro $i{arg.name})},
+											$parser
+										),
 									}),
 								});
 								
 							case getSignal(_) => Some(types):
-								final sig:SignatureCode = types;
 								def.fields.push({
 									access: [APublic, AFinal],
 									name: f.name,
@@ -59,25 +68,7 @@ class Object {
 									kind: FVar(f.type.toComplex()),
 								});
 								
-								init.push(macro $i{f.name} = new tink.core.Signal(cb -> {
-									final binding = __transport.signals.select(__filterSignal.bind(__iface, $v{capitalize(f.name)}, ${makeSigExpr(sig)}, msg -> msg.body)).handle(cb);
-									
-									final registrar = new why.dbus.Object<org.freedesktop.DBus>(__transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
-									final rule = new why.dbus.MatchRule({type: Signal, sender: __destination, path: __path, iface: __iface, member: $v{capitalize(f.name)}}).toString();
-									
-									registrar
-										.addMatch(rule)
-										.eager();
-										// .handle(o -> switch o {
-										// 	case Success(_): trace('registered signal: $rule');
-										// 	case Failure(e): trace('failed to register signal: $rule, reason: $e');
-										// });
-										
-									() -> {
-										registrar.removeMatch(rule).eager();
-										binding.cancel();
-									}
-								}));
+								init.push(macro $i{f.name} = __signal(__iface, $v{name}, ${(types:SignatureCode)}));
 								
 							case t:
 								final ct = t.toComplex();
@@ -88,8 +79,9 @@ class Object {
 									kind: FVar(macro:why.dbus.Property<$ct>),
 								});
 								
-								init.push(macro $i{f.name} = __property(__iface, $v{capitalize(f.name)}, ${makeSigExpr(SignatureCode.fromType(t))}));
+								init.push(macro $i{f.name} = __property(__iface, $v{name}, ${SignatureCode.fromType(t)}));
 						}
+					}
 					
 					def.pack = ['why', 'dbus'];
 					def;
@@ -97,10 +89,6 @@ class Object {
 					ctx.pos.error(e);
 			}
 		});
-	}
-	
-	static function makeSigExpr(sig:SignatureCode) {
-		return macro @:privateAccess new why.dbus.Signature.SignatureCode($v{sig});
 	}
 	
 	static function capitalize(v:String) {

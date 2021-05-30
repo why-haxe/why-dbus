@@ -5,11 +5,11 @@ import why.dbus.types.Variant;
 using tink.CoreApi;
 
 class Property<T> implements ReadWriteProperty<T> {
+	public final iface:String;
+	public final name:String;
+	public final signature:Signature.SignatureCode;
 	
 	final prop:Interface<org.freedesktop.DBus.Properties>;
-	final iface:String;
-	final name:String;
-	final signature:Signature.SignatureCode;
 	
 	public function new(transport, destination, path, iface, name, signature) {
 		this.prop = new Object<org.freedesktop.DBus.Properties>(transport, destination, path);
@@ -30,10 +30,16 @@ class Property<T> implements ReadWriteProperty<T> {
 
 interface ReadWriteProperty<T> extends ReadableProperty<T> extends WritableProperty<T> {}
 
-interface ReadableProperty<T> {
+interface ReadableProperty<T> extends PropertyBase {
 	function get():Promise<T>;
 }
 
-interface WritableProperty<T> {
+interface WritableProperty<T> extends PropertyBase {
 	function set(value:T):Promise<Noise>;
+}
+
+interface PropertyBase {
+	public final iface:String;
+	public final name:String;
+	public final signature:Signature.SignatureCode;
 }

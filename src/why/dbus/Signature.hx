@@ -66,6 +66,11 @@ enum abstract SignatureCode(String) to String {
 	
 	
 	#if macro
+	@:to
+	function toExpr():haxe.macro.Expr {
+		return macro @:privateAccess new why.dbus.Signature.SignatureCode($v{this});
+	}
+	
 	@:from
 	static function fromTypes(types:Array<haxe.macro.Type>):SignatureCode {
 		return types.map(fromType);
@@ -132,7 +137,7 @@ class SignatureCodeIterator {
 	inline function _eof() return pos >= s.length;
 	inline function _peek() return s.charCodeAt(pos);
 	inline function _next() return s.charCodeAt(pos++);
-	inline function _expect(code) return if(_next() != code) throw 'expected "${fromCharCode(code)}"';
+	function _expect(code) return if(_next() != code) throw 'expected "${fromCharCode(code)}"';
 	
 	function _parse():Signature {
 		return switch _next() {
