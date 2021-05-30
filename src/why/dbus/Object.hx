@@ -63,7 +63,7 @@ class ObjectBase {
 			if(message.signature.isEmpty())
 				new Error('Unexpected empty return');
 			else if(expectedSignature == message.signature)
-				Promise.resolve(message.body[0]);
+				Promise.resolve((message.body[0]:T));
 			else
 				new Error('Unexpected return type, perhaps the definition is wrong? Expected "$expectedSignature", got "${message.signature}"');
 				

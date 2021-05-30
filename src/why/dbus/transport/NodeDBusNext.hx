@@ -72,20 +72,20 @@ class NodeDBusNext implements Transport {
 		}
 	}
 	
-	static function toNativeValue(signature:Signature, value:Dynamic):Dynamic {
+	static function toNativeValue(signature:Signature, value:Any):Any {
 		return switch signature {
 			case Array(DictEntry(ObjectPath | String, s)):
-				final obj = new DynamicAccess<Dynamic>();
-				for(k => v in (value:Map<String, Dynamic>)) obj.set(k, toNativeValue(s, v));
+				final obj = new DynamicAccess<Any>();
+				for(k => v in (value:Map<String, Any>)) obj.set(k, toNativeValue(s, v));
 				obj;
 			case Array(DictEntry(Int16 | UInt16 | Int32 | UInt32, s)):
-				final obj = new DynamicAccess<Dynamic>();
-				for(k => v in (value:Map<Int, Dynamic>)) obj.set(cast k, toNativeValue(s, v));
+				final obj = new DynamicAccess<Any>();
+				for(k => v in (value:Map<Int, Any>)) obj.set(cast k, toNativeValue(s, v));
 				obj;
 			case Array(Byte):
 				js.node.Buffer.hxFromBytes(value);
 			case Array(s):
-				(value:Array<Dynamic>).map(toNativeValue.bind(s));
+				(value:Array<Any>).map(toNativeValue.bind(s));
 			case Variant:
 				final value:Variant = value;
 				new DBusVariant(value.signature, toNativeValue(value.signature, value.value));
@@ -94,20 +94,20 @@ class NodeDBusNext implements Transport {
 		}
 	}
 	
-	static function fromNativeValue(signature:Signature, value:Dynamic):Dynamic {
+	static function fromNativeValue(signature:Signature, value:Any):Any {
 		return switch signature {
 			case Array(DictEntry(ObjectPath | String, s)):
-				final map = new Map<String, Dynamic>();
+				final map = new Map<String, Any>();
 				for(k => v in (value:DynamicAccess<Any>)) map.set(k, fromNativeValue(s, v));
 				map;
 			case Array(DictEntry(Int16 | UInt16 | Int32 | UInt32, s)):
-				final map = new Map<Int, Dynamic>();
-				for(k => v in (value:DynamicAccess<Dynamic>)) map.set(Std.parseInt(k), fromNativeValue(s, v));
+				final map = new Map<Int, Any>();
+				for(k => v in (value:DynamicAccess<Any>)) map.set(Std.parseInt(k), fromNativeValue(s, v));
 				map;
 			case Array(Byte):
 				((value:js.node.Buffer)).hxToBytes();
 			case Array(s):
-				(value:Array<Dynamic>).map(fromNativeValue.bind(s));
+				(value:Array<Any>).map(fromNativeValue.bind(s));
 			case Variant:
 				final value:DBusVariant = value;
 				final sig:SignatureCode = cast value.signature;
@@ -130,8 +130,8 @@ private extern class DBus {
 @:jsRequire('dbus-next', 'Variant')
 private extern class DBusVariant {
 	final signature:String;
-	final value:Dynamic;
-	function new(s:String, v:Dynamic);
+	final value:Any;
+	function new(s:String, v:Any);
 }
 
 @:jsRequire('dbus-next', 'Message')
@@ -143,7 +143,7 @@ private extern class DBusMessage {
 	@:native('interface') final iface:String;
 	final member:String;
 	final signature:String;
-	final body:Array<Dynamic>;
+	final body:Array<Any>;
 	final errorName:String;
 	final replySerial:String;
 	final flags:Int;

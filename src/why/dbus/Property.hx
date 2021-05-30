@@ -20,7 +20,7 @@ class Property<T> implements ReadWriteProperty<T> {
 	
 	public function get():Promise<T> {
 		return prop.get(iface, name)
-			.next(v -> v.signature == signature ? Promise.resolve(v.value) : new Error('Unexpected return type. Expected "$signature" but got "${v.signature}"'));
+			.next(v -> v.signature == signature ? Promise.resolve((v.value:T)) : new Error('Unexpected return type. Expected "$signature" but got "${v.signature}"'));
 	}
 	
 	public function set(value:T):Promise<Noise> {

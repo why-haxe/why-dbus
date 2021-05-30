@@ -9,7 +9,7 @@ class Message {
 	@:optional public final iface:String;
 	@:optional public final member:String;
 	@:optional public final signature:Signature.SignatureCode;
-	@:optional public final body:Array<Dynamic>;
+	@:optional public final body:Array<Any>;
 	@:optional public final errorName:String;
 	@:optional public final replySerial:String;
 	@:optional public final flags:Int;
