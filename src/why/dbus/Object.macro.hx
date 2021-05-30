@@ -33,10 +33,10 @@ class Object {
 					for(f in fields) 
 						switch f.type.reduce() {
 							case TFun(args, ret):
-								final argSigs = args.map(arg -> SignatureTools.fromType(arg.t).force());
-								final parser = switch SignatureTools.fromType(ret) {
-									case None: macro __parseEmptyResponse;
-									case Some(retSig): macro __parseResponse.bind($v{retSig});
+								final argSigs:SignatureCode = args.map(arg -> SignatureCode.fromType(arg.t));
+								final parser = {
+									final sig = SignatureCode.fromType(ret);
+									sig.isEmpty() ? macro __parseEmptyResponse : macro __parseResponse.bind(${makeSigExpr(sig)});
 								}
 							
 								def.fields.push({
@@ -46,12 +46,12 @@ class Object {
 									kind: FFun({
 										args: args.map(arg -> ({name: arg.name, type: arg.t.toComplex(), opt: arg.opt}:FunctionArg)),
 										ret: asynchronize(ret),
-										expr: macro return __call(__iface, $v{capitalize(f.name)}, $v{argSigs}, $a{args.map(arg -> macro $i{arg.name})}, $parser),
+										expr: macro return __call(__iface, $v{capitalize(f.name)}, ${makeSigExpr(argSigs)}, $a{args.map(arg -> macro $i{arg.name})}, $parser),
 									}),
 								});
 								
 							// case TAbstract(_.get() => {name: 'Signal', pack: ['why', 'dbus']}, [v]):
-							// 	final sig = SignatureTools.fromType(v).force();
+							// 	final sig = SignatureCode.fromType(v).force();
 							// 	def.fields.push({
 							// 		access: [APublic, AFinal],
 							// 		name: f.name,
@@ -87,7 +87,7 @@ class Object {
 									kind: FVar(macro:why.dbus.Property<$ct>),
 								});
 								
-								init.push(macro $i{f.name} = __property(__iface, $v{capitalize(f.name)}, $v{SignatureTools.fromType(t).force()}));
+								init.push(macro $i{f.name} = __property(__iface, $v{capitalize(f.name)}, ${makeSigExpr(SignatureCode.fromType(t))}));
 						}
 					
 					def.pack = ['why', 'dbus'];
@@ -96,6 +96,10 @@ class Object {
 					ctx.pos.error(e);
 			}
 		});
+	}
+	
+	static function makeSigExpr(sig:SignatureCode) {
+		return macro @:privateAccess new why.dbus.Signature.SignatureCode($v{sig});
 	}
 	
 	static function capitalize(v:String) {

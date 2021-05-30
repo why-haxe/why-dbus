@@ -65,11 +65,11 @@ class ObjectTest {
 		obj.getAll('org.freedesktop.DBus')
 			.next(map -> {
 				final features = map['Features'];
-				asserts.assert(features.signature.match(Array(String)));
+				asserts.assert(features.signature == 'as');
 				for(v in (features.value:Array<String>)) asserts.assert(Std.is(v, String));
 				
 				final ifaces = map['Interfaces'];
-				asserts.assert(ifaces.signature.match(Array(String)));
+				asserts.assert(ifaces.signature == 'as');
 				for(v in (ifaces.value:Array<String>)) asserts.assert(Std.is(v, String));
 				
 				Noise;

@@ -11,6 +11,6 @@ abstract Variant(VariantObject) from VariantObject to VariantObject {
 }
 
 typedef VariantObject = {
-	final signature:Signature;
+	final signature:Signature.SignatureCode;
 	final value:Dynamic;
 }

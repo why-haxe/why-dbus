@@ -17,18 +17,12 @@ class ObjectBase {
 		__path = path;
 	}
 	
-	function __filterSignal<T>(iface, name, signature:Signature, extract:Message->T, message:Message):Option<T> {
-		trace('================================');
-		trace('path', message.path, __path);
-		trace('iface', message.iface, iface);
-		trace('member', message.member, name);
-		trace('signature', message.signature, signature);
-		trace('signature', message.signature.toTypeCode(), signature.toSingleTypeCode());
+	function __filterSignal<T>(iface, name, signature:Signature.SignatureCode, extract:Message->T, message:Message):Option<T> {
 		return if(
 			(__path == null || message.path == __path) &&
 			message.iface == iface && 
 			message.member == name &&
-			message.signature.toTypeCode() == signature.toSingleTypeCode()
+			message.signature == signature
 		)
 			Some(extract(message));
 		else
@@ -52,25 +46,22 @@ class ObjectBase {
 	}
 	
 	function __parseEmptyResponse(message:Message):Promise<Noise> {
-		return switch message.signature {
-			case []: 
+		return 
+			if(message.signature.isEmpty())
 				Promise.NOISE;
-			case sigs:
-				new Error('Unexpected return of type "${why.dbus.Signature.SignatureTools.toTypeCode(sigs)}" ');
-		}
+			else
+				new Error('Unexpected return of type "${message.signature}"');
 	}
 	
-	function __parseResponse<T>(expectedSignature:Signature, message:Message):Promise<T> {
-		return switch message.signature {
-			case []: 
+	function __parseResponse<T>(expectedSignature:SignatureCode, message:Message):Promise<T> {
+		return
+			if(message.signature.isEmpty())
 				new Error('Unexpected empty return');
-			case [sig]:
-				if(sig.eq(expectedSignature))
-					Promise.resolve(message.body[0]);
-				else
-					new Error('Unexpected return type, perhaps the definition is wrong? Expected "${expectedSignature.toSingleTypeCode()}", got "${why.dbus.Signature.SignatureTools.toTypeCode(message.signature)}"');
-			case v:
-				new Error('Multi-return is not supported.');
-		}
+			else if(expectedSignature == message.signature)
+				Promise.resolve(message.body[0]);
+			else
+				new Error('Unexpected return type, perhaps the definition is wrong? Expected "$expectedSignature", got "${message.signature}"');
+				
+			// TODO: new Error('Multi-return is not supported.');
 	}
 }

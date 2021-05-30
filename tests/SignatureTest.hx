@@ -13,14 +13,14 @@ class SignatureTest {
 	@:variant('(ss)', [Struct([String, String])])
 	@:variant('(a{is}a{is})', [Struct([Array(DictEntry(Int32, String)), Array(DictEntry(Int32, String))])])
 	public function parse(code:String, sigs:Array<Signature>) {
-		final parsed = SignatureTools.fromTypeCode(code).sure();
+		final parsed = SignatureCode.parse(code).sure();
 		
 		asserts.assert(compare(parsed, sigs));
 		
 		for(i in 0...sigs.length)
 			asserts.assert(sigs[i].eq(parsed[i]));
 		
-		asserts.assert([for(s in sigs) s.toTypeCode()].join('') == code);
+		asserts.assert((sigs:SignatureCode) == code);
 		return asserts.done();
 	}
 }

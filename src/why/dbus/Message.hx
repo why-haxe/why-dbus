@@ -8,7 +8,7 @@ class Message {
 	@:optional public final path:String;
 	@:optional public final iface:String;
 	@:optional public final member:String;
-	@:optional public final signature:Array<Signature>;
+	@:optional public final signature:Signature.SignatureCode;
 	@:optional public final body:Array<Dynamic>;
 	@:optional public final errorName:String;
 	@:optional public final replySerial:String;

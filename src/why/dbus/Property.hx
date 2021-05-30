@@ -7,7 +7,7 @@ class Property<T> implements ReadWriteProperty<T> {
 	final prop:Interface<org.freedesktop.DBus.Properties>;
 	final iface:String;
 	final name:String;
-	final signature:Signature;
+	final signature:Signature.SignatureCode;
 	
 	public function new(transport, destination, path, iface, name, signature) {
 		this.prop = new Object<org.freedesktop.DBus.Properties>(transport, destination, path);
@@ -18,7 +18,7 @@ class Property<T> implements ReadWriteProperty<T> {
 	
 	public function get():Promise<T> {
 		return prop.get(iface, name)
-			.next(v -> v.signature.eq(signature) ? Promise.resolve(v.value) : new Error('Unexpected return type. Expected "${signature.toSingleTypeCode()}" but got "${v.signature.toSingleTypeCode()}"'));
+			.next(v -> v.signature == signature ? Promise.resolve(v.value) : new Error('Unexpected return type. Expected "$signature" but got "${v.signature}"'));
 	}
 	
 	public function set(value:T):Promise<Noise> {

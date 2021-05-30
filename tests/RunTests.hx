@@ -8,7 +8,7 @@ class RunTests {
 
 	static function main() {
 		Runner.run(TestBatch.make([
-			// new SignatureTest(),
+			new SignatureTest(),
 			new ObjectTest(),
 		])).handle(Runner.exit);
 	}

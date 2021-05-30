@@ -16,7 +16,7 @@ class NodeDBusNext implements Transport {
 		
 		this.signals = new Signal(cb -> {
 			bus.on('message', function onMessage(message) switch fromNativeMessage(message) {
-				case Success(msg) if(msg.type == Signal): cb(msg);
+				case msg = {type: Signal}: cb(msg);
 				case _: // swallow
 			});
 			() -> bus.off('message', onMessage);
@@ -41,31 +41,34 @@ class NodeDBusNext implements Transport {
 			path: message.path,
 			'interface': message.iface,
 			member: message.member,
-			signature: SignatureTools.toTypeCode(message.signature),
-			body: [for(i => s in message.signature) toNativeValue(s, message.body[i])],
+			signature: message.signature,
+			body: {
+				var i = 0;
+				[for(s in message.signature) toNativeValue(s, message.body[i++])];
+			},
 			errorName: message.errorName,
 			replySerial: message.replySerial,
 			flags: message.flags,
 		});
 	}
 	
-	static function fromNativeMessage(message:DBusMessage):Outcome<Message, Error> {
-		return tink.core.Error.catchExceptions(() -> {
-			final signature = SignatureTools.fromTypeCode(message.signature).sure();
-			({
-				type: message.type,
-				serial: message.serial,
-				destination: message.destination,
-				path: message.path,
-				iface: message.iface,
-				member: message.member,
-				signature: signature,
-				body: [for(i => s in signature) fromNativeValue(s, message.body[i])],
-				errorName: message.errorName,
-				replySerial: message.replySerial,
-				flags: message.flags,
-			}:Message);
-		});
+	static function fromNativeMessage(message:DBusMessage):Message {
+		return {
+			type: message.type,
+			serial: message.serial,
+			destination: message.destination,
+			path: message.path,
+			iface: message.iface,
+			member: message.member,
+			signature: cast message.signature,
+			body: {
+				var i = 0;
+				[for(s in (cast message.signature:SignatureCode)) fromNativeValue(s, message.body[i++])];
+			},
+			errorName: message.errorName,
+			replySerial: message.replySerial,
+			flags: message.flags,
+		}
 	}
 	
 	static function toNativeValue(signature:Signature, value:Dynamic):Dynamic {
@@ -78,7 +81,7 @@ class NodeDBusNext implements Transport {
 				js.node.Buffer.hxFromBytes(value);
 			case Variant:
 				final value:Variant = value;
-				new DBusVariant(value.signature.toSingleTypeCode(), value.value);
+				new DBusVariant(value.signature, value.value);
 			case _:
 				value;
 		}
@@ -94,7 +97,7 @@ class NodeDBusNext implements Transport {
 				((value:js.node.Buffer)).hxToBytes();
 			case Variant:
 				final value:DBusVariant = value;
-				new Variant(SignatureTools.fromTypeCode(value.signature).sure()[0], value.value);
+				new Variant(cast value.signature, value.value);
 			case _:
 				value;
 		}
