@@ -70,7 +70,7 @@ class NodeDBusNext implements Transport {
 	
 	static function toNativeValue(signature:Signature, value:Dynamic):Dynamic {
 		return switch signature {
-			case Array(DictEntry(String, s)):
+			case Array(DictEntry(ObjectPath | String, s)):
 				final obj = new DynamicAccess<Dynamic>();
 				for(k => v in (value:Map<String, Dynamic>)) obj.set(k, toNativeValue(s, v));
 				obj;
@@ -86,7 +86,7 @@ class NodeDBusNext implements Transport {
 	
 	static function fromNativeValue(signature:Signature, value:Dynamic):Dynamic {
 		return switch signature {
-			case Array(DictEntry(String, s)):
+			case Array(DictEntry(ObjectPath | String, s)):
 				final map = new Map<String, Dynamic>();
 				for(k => v in (value:DynamicAccess<Dynamic>)) map.set(k, fromNativeValue(s, v));
 				map;

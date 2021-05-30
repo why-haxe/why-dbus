@@ -5,6 +5,9 @@ using tink.MacroApi;
 #end
 
 import String.*;
+
+using Lambda;
+using StringTools;
 using tink.CoreApi;
 
 @:using(why.dbus.Signature.SignatureTools)
@@ -135,16 +138,34 @@ class SignatureTools {
 	#if macro
 	public static function fromType(type:haxe.macro.Type):Option<Signature> {
 		return switch type.reduce() {
-			case _.getID() => 'Void': None;
-			case _.getID() => 'Bool': Some(Boolean);
-			case _.getID() => 'Int': Some(Int32);
-			case _.getID() => 'UInt': Some(UInt32);
-			case _.getID() => 'Float': Some(Double);
-			case _.getID() => 'String': Some(String);
-			case _.getID() => 'haxe.io.Bytes': Some(Array(Byte));
-			case _.getID() => 'why.dbus.Variant': Some(Variant);
-			case TInst(_.get() => {name: 'Array', pack: []}, [v]): Some(Array(fromType(v).force()));
-			case TAbstract(_.get() => {name: 'Map', pack: ['haxe', 'ds']}, [k, v]): Some(Array(DictEntry(fromType(k).force(), fromType(v).force())));
+			case _.getID() => 'Void':
+				None;
+			case _.getID() => 'Bool':
+				Some(Boolean);
+			case _.getID() => 'Int':
+				Some(Int32);
+			case _.getID() => 'UInt':
+				Some(UInt32);
+			case _.getID() => 'Float':
+				Some(Double);
+			case _.getID() => 'String':
+				Some(String);
+			case _.getID() => 'haxe.io.Bytes':
+				Some(Array(Byte));
+			case _.getID() => 'why.dbus.Variant':
+				Some(Variant);
+			case _.getID() => 'why.dbus.ObjectPath':
+				Some(ObjectPath);
+			case TInst(_.get() => {name: 'Array', pack: []}, [v]):
+				Some(Array(fromType(v).force()));
+			case TAbstract(_.get() => {name: 'Map', pack: ['haxe', 'ds']}, [k, v]):
+				Some(Array(DictEntry(fromType(k).force(), fromType(v).force())));
+			// case TAbstract(_.get() => {name: _.startsWith('Signal') => true, pack: ['why', 'dbus'], type: TAbstract(_.get() => {name: 'Signal', pack: ['tink', 'core']}, [TAbstract(_.get() => {type: TAnonymous(_.get() => {fields: fields})}, _)])}, _):
+			// 	for(i in 0...fields.length) {
+			// 		final field = fields.find(f -> f.name == 'v$i');
+			// 		trace(field.type);
+			// 	}
+			// 	throw 'todo';
 			case v: throw '$v not supported';
 		}
 	}

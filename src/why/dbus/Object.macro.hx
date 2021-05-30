@@ -22,9 +22,10 @@ class Object {
 					final init = [];
 					
 					final def = macro class $name extends why.dbus.Object.ObjectBase implements why.dbus.Interface<$ct> {
-						final __iface:String = $v{iface};
+						final __iface:String;
 						public function new(transport, destination, path) {
 							super(transport, destination, path);
+							__iface = $v{iface};
 							$b{init}
 						}
 					}
@@ -45,37 +46,38 @@ class Object {
 									kind: FFun({
 										args: args.map(arg -> ({name: arg.name, type: arg.t.toComplex(), opt: arg.opt}:FunctionArg)),
 										ret: asynchronize(ret),
-										expr: macro return __transport.call({
-											type: MethodCall,
-											destination: __destination,
-											path: __path,
-											iface: __iface,
-											member: $v{capitalize(f.name)},
-											signature: $v{argSigs},
-											body: $a{args.map(arg -> macro $i{arg.name})},
-										}).next($parser),
+										expr: macro return __call(__iface, $v{capitalize(f.name)}, $v{argSigs}, $a{args.map(arg -> macro $i{arg.name})}, $parser),
 									}),
 								});
-							case TAbstract(_.get() => {name: 'Signal', pack: ['tink', 'core']}, [v]):
-								final sig = SignatureTools.fromType(v).force();
-								def.fields.push({
-									access: [APublic, AFinal],
-									name: f.name,
-									pos: f.pos,
-									kind: FVar(f.type.toComplex()),
-								});
 								
-								init.push(macro $i{f.name} = __transport.signals.select(msg -> {
-									if(
-										msg.path == __path &&
-										msg.iface == __iface && 
-										msg.member == $v{capitalize(f.name)} &&
-										why.dbus.Signature.SignatureTools.toTypeCode(msg.signature) == $v{sig.toSingleTypeCode()}
-									)
-										Some(msg.body[0]);
-									else
-										None;
-								}));
+							// case TAbstract(_.get() => {name: 'Signal', pack: ['why', 'dbus']}, [v]):
+							// 	final sig = SignatureTools.fromType(v).force();
+							// 	def.fields.push({
+							// 		access: [APublic, AFinal],
+							// 		name: f.name,
+							// 		pos: f.pos,
+							// 		kind: FVar(f.type.toComplex()),
+							// 	});
+								
+							// 	init.push(macro $i{f.name} = new tink.core.Signal(cb -> {
+							// 		final binding = __transport.signals.select(__filterSignal.bind(__iface, $v{capitalize(f.name)}, $v{sig}, msg -> msg.body[0])).handle(cb);
+									
+							// 		final registrar = new why.dbus.Object<org.freedesktop.DBus>(__transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+							// 		final rule = new why.dbus.MatchRule({type: Signal, sender: __destination, path: __path, iface: __iface, member: $v{capitalize(f.name)}}).toString();
+									
+							// 		registrar
+							// 			.addMatch(rule)
+							// 			.handle(o -> switch o {
+							// 				case Success(_): trace('registered signal: $rule');
+							// 				case Failure(e): trace('failed to register signal: $rule, reason: $e');
+							// 			});
+										
+							// 		() -> {
+							// 			registrar.removeMatch(rule).eager();
+							// 			binding.cancel();
+							// 		}
+							// 	}));
+								
 							case t:
 								final ct = t.toComplex();
 								def.fields.push({
@@ -85,7 +87,7 @@ class Object {
 									kind: FVar(macro:why.dbus.Property<$ct>),
 								});
 								
-								init.push(macro $i{f.name} = new why.dbus.Property<$ct>(__transport, __destination, __path, __iface, $v{capitalize(f.name)}, $v{SignatureTools.fromType(t).force()}));
+								init.push(macro $i{f.name} = __property(__iface, $v{capitalize(f.name)}, $v{SignatureTools.fromType(t).force()}));
 						}
 					
 					def.pack = ['why', 'dbus'];

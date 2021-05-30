@@ -20,6 +20,15 @@ enum abstract MessageType(Int) to Int {
 	final MethodReturn = 2;
 	final Error = 3;
 	final Signal = 4;
+	
+	public function toString() {
+		return switch (cast this:MessageType) {
+			case MethodCall: 'method_call';
+			case MethodReturn: 'method_return';
+			case Error: 'error';
+			case Signal: 'signal';
+		}
+	}
 }
 
 enum abstract MessageFlag(Int) to Int {
