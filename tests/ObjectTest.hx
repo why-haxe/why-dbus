@@ -37,27 +37,24 @@ class ObjectTest {
 		return asserts;
 	}
 	
-	// public function signal() {
-	// 	final transport = why.dbus.transport.NodeDBusNext.sessionBus();
-	// 	final obj:Interface<org.freedesktop.DBus> = new Object<org.freedesktop.DBus>(transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+	public function signal() {
+		final transport = why.dbus.transport.NodeDBusNext.sessionBus();
+		final obj:Interface<org.freedesktop.DBus> = new Object<org.freedesktop.DBus>(transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
 		
-	// 	var nameLostFired = false;
-	// 	var nameAcquiredFired = false;
+		var nameLostFired = false;
+		var nameAcquiredFired = false;
 		
-	// 	obj.nameLost.handle(v -> nameLostFired = true);
-	// 	obj.nameAcquired.handle(v -> nameAcquiredFired = true);
-	// 	obj.requestName('why.dbus.Test', 0)
-	// 		.next(ret -> {
-	// 			trace(ret);
-	// 			Future.delay(500, Noise);
-	// 		})
-	// 		.next(_ -> {
-	// 			asserts.assert(!nameLostFired);
-	// 			asserts.assert(nameAcquiredFired);
-	// 		})
-	// 		.handle(asserts.handle);
-	// 	return asserts;
-	// }
+		obj.nameLost.handle(v -> nameLostFired = true);
+		obj.nameAcquired.handle(v -> nameAcquiredFired = true);
+		obj.requestName('why.dbus.Test', 0)
+			.next(_ -> Future.delay(500, Noise))
+			.next(_ -> {
+				asserts.assert(!nameLostFired);
+				asserts.assert(nameAcquiredFired);
+			})
+			.handle(asserts.handle);
+		return asserts;
+	}
 	
 	public function rawProperty() {
 		final transport = why.dbus.transport.NodeDBusNext.sessionBus();

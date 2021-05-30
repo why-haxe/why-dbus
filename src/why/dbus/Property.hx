@@ -1,5 +1,7 @@
 package why.dbus;
 
+import why.dbus.types.Variant;
+
 using tink.CoreApi;
 
 class Property<T> implements ReadWriteProperty<T> {

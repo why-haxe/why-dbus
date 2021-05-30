@@ -28,13 +28,14 @@ class Interface {
 									}),
 								});
 						
-							// case TAbstract(_.get() => {name: 'Signal', pack: ['tink', 'core']}, [v]):
-							// 	def.fields.push({
-							// 		access: [AFinal],
-							// 		name: f.name,
-							// 		pos: f.pos,
-							// 		kind: FVar(f.type.toComplex()),
-							// 	});
+							case getSignal(_) => Some(types): 
+								def.fields.push({
+									access: [AFinal],
+									name: f.name,
+									pos: f.pos,
+									kind: FVar(f.type.toComplex()),
+								});
+								
 							case t:
 								final ct = t.toComplex();
 								def.fields.push({

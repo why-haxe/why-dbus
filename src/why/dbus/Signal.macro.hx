@@ -12,7 +12,7 @@ class Signal {
 	public static function build() {
 		return BuildCache.getTypeN('why.dbus.Signal', (ctx:BuildContextN) -> {
 			final name = ctx.name;
-			final tupleCt = TPath('why.Tuple'.asTypePath(ctx.types.map(t -> TPType(t.toComplex()))));
+			final tupleCt = TPath('why.dbus.Body'.asTypePath(ctx.types.map(t -> TPType(t.toComplex()))));
 			final signalCt = TPath('tink.core.Signal'.asTypePath([TPType(tupleCt)]));
 			
 			final def = macro class $name {}
@@ -24,7 +24,13 @@ class Signal {
 				kind: FFun({
 					args: [({name: 'f'}:FunctionArg)],
 					ret: macro:tink.core.Callback.CallbackLink,
-					expr: macro return this.handle(tuple -> {}),
+					expr: {
+						final args = [for(i in 0...ctx.types.length) {
+							final name = 'v$i';
+							macro body.$name;
+						}];
+						macro return this.handle(body -> f($a{args}));
+					},
 				})
 			});
 			

@@ -33,7 +33,7 @@ class Object {
 					for(f in fields) 
 						switch f.type.reduce() {
 							case TFun(args, ret):
-								final argSigs:SignatureCode = args.map(arg -> SignatureCode.fromType(arg.t));
+								final argSigs:SignatureCode = args.map(arg -> arg.t);
 								final parser = {
 									final sig = SignatureCode.fromType(ret);
 									sig.isEmpty() ? macro __parseEmptyResponse : macro __parseResponse.bind(${makeSigExpr(sig)});
@@ -50,33 +50,34 @@ class Object {
 									}),
 								});
 								
-							// case TAbstract(_.get() => {name: 'Signal', pack: ['why', 'dbus']}, [v]):
-							// 	final sig = SignatureCode.fromType(v).force();
-							// 	def.fields.push({
-							// 		access: [APublic, AFinal],
-							// 		name: f.name,
-							// 		pos: f.pos,
-							// 		kind: FVar(f.type.toComplex()),
-							// 	});
+							case getSignal(_) => Some(types):
+								final sig:SignatureCode = types;
+								def.fields.push({
+									access: [APublic, AFinal],
+									name: f.name,
+									pos: f.pos,
+									kind: FVar(f.type.toComplex()),
+								});
 								
-							// 	init.push(macro $i{f.name} = new tink.core.Signal(cb -> {
-							// 		final binding = __transport.signals.select(__filterSignal.bind(__iface, $v{capitalize(f.name)}, $v{sig}, msg -> msg.body[0])).handle(cb);
+								init.push(macro $i{f.name} = new tink.core.Signal(cb -> {
+									final binding = __transport.signals.select(__filterSignal.bind(__iface, $v{capitalize(f.name)}, ${makeSigExpr(sig)}, msg -> msg.body)).handle(cb);
 									
-							// 		final registrar = new why.dbus.Object<org.freedesktop.DBus>(__transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
-							// 		final rule = new why.dbus.MatchRule({type: Signal, sender: __destination, path: __path, iface: __iface, member: $v{capitalize(f.name)}}).toString();
+									final registrar = new why.dbus.Object<org.freedesktop.DBus>(__transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+									final rule = new why.dbus.MatchRule({type: Signal, sender: __destination, path: __path, iface: __iface, member: $v{capitalize(f.name)}}).toString();
 									
-							// 		registrar
-							// 			.addMatch(rule)
-							// 			.handle(o -> switch o {
-							// 				case Success(_): trace('registered signal: $rule');
-							// 				case Failure(e): trace('failed to register signal: $rule, reason: $e');
-							// 			});
+									registrar
+										.addMatch(rule)
+										.eager();
+										// .handle(o -> switch o {
+										// 	case Success(_): trace('registered signal: $rule');
+										// 	case Failure(e): trace('failed to register signal: $rule, reason: $e');
+										// });
 										
-							// 		() -> {
-							// 			registrar.removeMatch(rule).eager();
-							// 			binding.cancel();
-							// 		}
-							// 	}));
+									() -> {
+										registrar.removeMatch(rule).eager();
+										binding.cancel();
+									}
+								}));
 								
 							case t:
 								final ct = t.toComplex();

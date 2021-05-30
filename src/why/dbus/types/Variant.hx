@@ -1,4 +1,4 @@
-package why.dbus;
+package why.dbus.types;
 
 @:forward
 abstract Variant(VariantObject) from VariantObject to VariantObject {

@@ -1,6 +1,7 @@
 package why.dbus;
 
 #if macro
+import why.dbus.macro.Helpers.*;
 using tink.MacroApi;
 #end
 
@@ -50,6 +51,11 @@ enum abstract SignatureCode(String) to String {
 		return new SignatureCode(arr.join(''));
 	}
 	
+	@:to function toSignature():Signature {
+		for(s in iterator()) return s;
+		return null;
+	}
+	
 	public inline function iterator():SignatureCodeIterator {
 		return new SignatureCodeIterator(this);
 	}
@@ -60,36 +66,47 @@ enum abstract SignatureCode(String) to String {
 	
 	
 	#if macro
+	@:from
+	static function fromTypes(types:Array<haxe.macro.Type>):SignatureCode {
+		return types.map(fromType);
+	}
+	
+	@:from
 	public static function fromType(type:haxe.macro.Type):SignatureCode {
 		return switch type.reduce() {
 			case _.getID() => 'Void':
 				new SignatureCode('');
 			case _.getID() => 'Bool':
 				new SignatureCode('b');
+				
+			case _.getID() => 'why.dbus.types.Int16':
+				new SignatureCode('n');
+			case _.getID() => 'why.dbus.types.UInt16':
+				new SignatureCode('q');
+				
 			case _.getID() => 'Int':
 				new SignatureCode('i');
 			case _.getID() => 'UInt':
 				new SignatureCode('u');
 			case _.getID() => 'Float':
+				
 				new SignatureCode('d');
 			case _.getID() => 'String':
+				
 				new SignatureCode('s');
 			case _.getID() => 'haxe.io.Bytes':
 				new SignatureCode('ay');
-			case _.getID() => 'why.dbus.Variant':
+			case _.getID() => 'why.dbus.types.Variant':
 				new SignatureCode('v');
-			case _.getID() => 'why.dbus.ObjectPath':
+			case _.getID() => 'why.dbus.types.ObjectPath':
 				new SignatureCode('o');
+				
 			case TInst(_.get() => {name: 'Array', pack: []}, [v]):
 				new SignatureCode('a${fromType(v)}');
 			case TAbstract(_.get() => {name: 'Map', pack: ['haxe', 'ds']}, [k, v]):
 				new SignatureCode('a{${fromType(k)}${fromType(v)}}');
-			// case TAbstract(_.get() => {name: _.startsWith('Signal') => true, pack: ['why', 'dbus'], type: TAbstract(_.get() => {name: 'Signal', pack: ['tink', 'core']}, [TAbstract(_.get() => {type: TAnonymous(_.get() => {fields: fields})}, _)])}, _):
-			// 	for(i in 0...fields.length) {
-			// 		final field = fields.find(f -> f.name == 'v$i');
-			// 		trace(field.type);
-			// 	}
-			// 	throw 'todo';
+			case getSignal(_) => Some(types):
+				fromTypes(types);
 			case v: throw '$v not supported';
 		}
 	}

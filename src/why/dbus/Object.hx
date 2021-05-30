@@ -17,7 +17,12 @@ class ObjectBase {
 		__path = path;
 	}
 	
-	function __filterSignal<T>(iface, name, signature:Signature.SignatureCode, extract:Message->T, message:Message):Option<T> {
+	function __filterSignal<T>(iface, name, signature:SignatureCode, extract:Message->T, message:Message):Option<T> {
+		// trace('================================');
+		// trace('path', message.path, __path);
+		// trace('iface', message.iface, iface);
+		// trace('member', message.member, name);
+		// trace('signature', message.signature, signature);
 		return if(
 			(__path == null || message.path == __path) &&
 			message.iface == iface && 

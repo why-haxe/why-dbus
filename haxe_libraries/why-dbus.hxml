@@ -1,3 +1,2 @@
 -cp src
 -D why-dbus=0.0.0
--lib why-tuple

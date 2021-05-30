@@ -1,4 +1,0 @@
-# @install: lix --silent download "gh://github.com/why-haxe/why-tuple#57adace3461b4b93874a05a6cc51ed0aee914e65" into why-tuple/0.0.0/github/57adace3461b4b93874a05a6cc51ed0aee914e65
--lib tink_macro
--cp ${HAXE_LIBCACHE}/why-tuple/0.0.0/github/57adace3461b4b93874a05a6cc51ed0aee914e65/src
--D why-tuple=0.0.0

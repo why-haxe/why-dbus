@@ -1,5 +1,6 @@
 package why.dbus.transport;
 
+import why.dbus.types.Variant;
 import why.dbus.Message;
 import why.dbus.Transport;
 import why.dbus.Signature;
@@ -77,11 +78,17 @@ class NodeDBusNext implements Transport {
 				final obj = new DynamicAccess<Dynamic>();
 				for(k => v in (value:Map<String, Dynamic>)) obj.set(k, toNativeValue(s, v));
 				obj;
+			case Array(DictEntry(Int16 | UInt16 | Int32 | UInt32, s)):
+				final obj = new DynamicAccess<Dynamic>();
+				for(k => v in (value:Map<Int, Dynamic>)) obj.set(cast k, toNativeValue(s, v));
+				obj;
 			case Array(Byte):
 				js.node.Buffer.hxFromBytes(value);
+			case Array(s):
+				(value:Array<Dynamic>).map(toNativeValue.bind(s));
 			case Variant:
 				final value:Variant = value;
-				new DBusVariant(value.signature, value.value);
+				new DBusVariant(value.signature, toNativeValue(value.signature, value.value));
 			case _:
 				value;
 		}
@@ -91,13 +98,20 @@ class NodeDBusNext implements Transport {
 		return switch signature {
 			case Array(DictEntry(ObjectPath | String, s)):
 				final map = new Map<String, Dynamic>();
-				for(k => v in (value:DynamicAccess<Dynamic>)) map.set(k, fromNativeValue(s, v));
+				for(k => v in (value:DynamicAccess<Any>)) map.set(k, fromNativeValue(s, v));
+				map;
+			case Array(DictEntry(Int16 | UInt16 | Int32 | UInt32, s)):
+				final map = new Map<Int, Dynamic>();
+				for(k => v in (value:DynamicAccess<Dynamic>)) map.set(Std.parseInt(k), fromNativeValue(s, v));
 				map;
 			case Array(Byte):
 				((value:js.node.Buffer)).hxToBytes();
+			case Array(s):
+				(value:Array<Dynamic>).map(fromNativeValue.bind(s));
 			case Variant:
 				final value:DBusVariant = value;
-				new Variant(cast value.signature, value.value);
+				final sig:SignatureCode = cast value.signature;
+				new Variant(sig, fromNativeValue(sig, value.value));
 			case _:
 				value;
 		}
