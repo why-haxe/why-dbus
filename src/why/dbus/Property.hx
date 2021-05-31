@@ -9,22 +9,35 @@ class Property<T> implements ReadWriteProperty<T> {
 	public final name:String;
 	public final signature:Signature.SignatureCode;
 	
+	final optional:Bool;
 	final prop:Interface<org.freedesktop.DBus.Properties>;
 	
-	public function new(transport, destination, path, iface, name, signature) {
+	public function new(transport, destination, path, iface, name, signature, optional) {
 		this.prop = new Object<org.freedesktop.DBus.Properties>(transport, destination, path);
 		this.iface = iface;
 		this.name = name;
 		this.signature = signature;
+		this.optional = optional;
 	}
 	
 	public function get():Promise<T> {
-		return prop.get(iface, name)
+		final value = prop.get(iface, name)
 			.next(v -> v.signature == signature ? Promise.resolve((v.value:T)) : new Error('Unexpected return type. Expected "$signature" but got "${v.signature}"'));
+		
+		return
+			if(optional) 
+				value.tryRecover(e -> switch Std.downcast(e, why.dbus.Error) {
+					case null: e;
+					case err if(err.data.type == 'org.freedesktop.DBus.Error.InvalidArgs'): cast Promise.NOISE;
+					case _: e;
+				});
+			else
+				value;
 	}
 	
 	public function set(value:T):Promise<Noise> {
 		return prop.set(iface, name, new Variant(signature, value));
+	
 	}
 }
 

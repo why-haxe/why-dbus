@@ -30,8 +30,16 @@ class NodeDBusNext implements Transport {
 	public static inline function sessionBus(?opt)
 		return new NodeDBusNext(DBus.sessionBus(opt));
 	
-	public function call(message:Message):Promise<Message> {
-		return Promise.ofJsPromise(bus.call(toNativeMessage(message))).next(fromNativeMessage);
+	public function call(message:Message, ?pos):Promise<Message> {
+		return Promise.ofJsPromise(
+			bus.call(toNativeMessage(message)),
+			e -> switch Std.downcast(e, DBusError) {
+				case null:
+					tink.core.Error.ofJsError(e);
+				case e:
+					new why.dbus.Error(500, e.text, {type: e.type, message: fromNativeMessage(e.reply)}, pos);
+			}
+		).next(fromNativeMessage);
 	}
 	
 	static function toNativeMessage(message:Message):DBusMessage {
@@ -149,4 +157,11 @@ private extern class DBusMessage {
 	final flags:Int;
 	
 	function new(opt:{});
+}
+
+@:jsRequire('dbus-next', 'DBusError')
+private extern class DBusError {
+	final type:String;
+	final text:String;
+	final reply:DBusMessage;
 }

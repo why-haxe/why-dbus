@@ -71,6 +71,7 @@ class Object {
 								init.push(macro $i{f.name} = __signal(__iface, $v{name}, ${(types:SignatureCode)}));
 								
 							case t:
+								final optional = f.meta.has(':optional');
 								final ct = t.toComplex();
 								def.fields.push({
 									access: [APublic, AFinal],
@@ -79,7 +80,7 @@ class Object {
 									kind: FVar(macro:why.dbus.Property<$ct>),
 								});
 								
-								init.push(macro $i{f.name} = __property(__iface, $v{name}, ${SignatureCode.fromType(t)}));
+								init.push(macro $i{f.name} = __property(__iface, $v{name}, ${SignatureCode.fromType(t)}, $v{optional}));
 						}
 					}
 					

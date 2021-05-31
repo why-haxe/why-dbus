@@ -50,8 +50,8 @@ class ObjectBase {
 		});
 	}
 	
-	function __property<T>(iface, name, signature):Property<T> {
-		return new Property<T>(__transport, __destination, __path, iface, name, signature);
+	function __property<T>(iface, name, signature, optional):Property<T> {
+		return new Property<T>(__transport, __destination, __path, iface, name, signature, optional);
 	}
 	
 	function __call<T>(iface, name, signature, body, parser):Promise<T> {
