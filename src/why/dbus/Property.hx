@@ -8,6 +8,7 @@ class Property<T> implements ReadWriteProperty<T> {
 	public final iface:String;
 	public final name:String;
 	public final signature:Signature.SignatureCode;
+	public final changed:Signal<T>;
 	
 	final optional:Bool;
 	final prop:Interface<org.freedesktop.DBus.Properties>;
@@ -18,6 +19,16 @@ class Property<T> implements ReadWriteProperty<T> {
 		this.name = name;
 		this.signature = signature;
 		this.optional = optional;
+		this.changed = prop.propertiesChanged.select(v -> {
+			if(v.v0 == iface) {
+				switch v.v1.get(name) {
+					case null: None;
+					case variant: Some((variant.value:T));
+				}
+			} else {
+				None;
+			}
+		});
 	}
 	
 	public function get():Promise<T> {
@@ -44,6 +55,7 @@ class Property<T> implements ReadWriteProperty<T> {
 interface ReadWriteProperty<T> extends ReadableProperty<T> extends WritableProperty<T> {}
 
 interface ReadableProperty<T> extends PropertyBase {
+	final changed:Signal<T>;
 	function get():Promise<T>;
 }
 
