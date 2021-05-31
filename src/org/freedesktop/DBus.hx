@@ -29,3 +29,7 @@ interface ObjectManager {
 	
 	function getManagedObjects():Map<ObjectPath, Map<String, Map<String, Variant>>>;
 }
+
+interface Introspectable {
+	function introspect():String;
+}
