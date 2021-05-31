@@ -91,7 +91,7 @@ class NodeDBusNext implements Transport {
 				for(k => v in (value:Map<Int, Any>)) obj.set(cast k, toNativeValue(s, v));
 				obj;
 			case Array(Byte):
-				js.node.Buffer.hxFromBytes(value);
+				(value:tink.Chunk).toBuffer();
 			case Array(s):
 				(value:Array<Any>).map(toNativeValue.bind(s));
 			case Variant:
@@ -113,7 +113,7 @@ class NodeDBusNext implements Transport {
 				for(k => v in (value:DynamicAccess<Any>)) map.set(Std.parseInt(k), fromNativeValue(s, v));
 				map;
 			case Array(Byte):
-				((value:js.node.Buffer)).hxToBytes();
+				tink.Chunk.ofBuffer(value);
 			case Array(s):
 				(value:Array<Any>).map(fromNativeValue.bind(s));
 			case Variant:

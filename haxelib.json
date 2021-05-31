@@ -11,6 +11,7 @@
   "releasenote": "initial release",
   "version": "0.0.0",
   "dependencies": {
-    "tink_xml": ""
+    "tink_xml": "",
+    "tink_chunk": ""
   }
 }

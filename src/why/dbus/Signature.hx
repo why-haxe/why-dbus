@@ -99,7 +99,7 @@ enum abstract SignatureCode(String) to String {
 			case _.getID() => 'String':
 				
 				new SignatureCode('s');
-			case _.getID() => 'haxe.io.Bytes':
+			case _.getID() => 'tink.Chunk':
 				new SignatureCode('ay');
 			case _.getID() => 'why.dbus.types.Variant':
 				new SignatureCode('v');
