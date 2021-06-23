@@ -5,6 +5,7 @@ import why.dbus.types.Variant;
 using tink.CoreApi;
 
 class Property<T> implements ReadWriteProperty<T> {
+	public final path:String;
 	public final iface:String;
 	public final name:String;
 	public final signature:Signature.SignatureCode;
@@ -15,6 +16,7 @@ class Property<T> implements ReadWriteProperty<T> {
 	
 	public function new(transport, destination, path, iface, name, signature, optional) {
 		this.prop = new Object<org.freedesktop.DBus.Properties>(transport, destination, path);
+		this.path = path;
 		this.iface = iface;
 		this.name = name;
 		this.signature = signature;
@@ -64,6 +66,7 @@ interface WritableProperty<T> extends PropertyBase {
 }
 
 interface PropertyBase {
+	public final path:String;
 	public final iface:String;
 	public final name:String;
 	public final signature:Signature.SignatureCode;
