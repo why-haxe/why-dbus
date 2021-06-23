@@ -54,7 +54,7 @@ class ObjectBase {
 		return new Property<T>(__transport, __destination, __path, iface, name, signature, optional);
 	}
 	
-	function __call<T>(iface, name, signature, body, parser):Promise<T> {
+	function __call<T>(iface, name, signature, body, parser, ?pos):Promise<T> {
 		return __transport.call({
 			type: MethodCall,
 			destination: __destination,
@@ -63,7 +63,7 @@ class ObjectBase {
 			member: name,
 			signature: signature,
 			body: body,
-		}).next(parser);
+		}, pos).next(parser);
 	}
 	
 	static function __parseEmptyResponse(message:Message):Promise<Noise> {

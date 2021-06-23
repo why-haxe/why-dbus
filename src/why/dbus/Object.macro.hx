@@ -50,7 +50,7 @@ class Object {
 									kind: FFun({
 										args: args.map(arg -> ({name: arg.name, type: arg.t.toComplex(), opt: arg.opt}:FunctionArg)),
 										ret: asynchronize(ret),
-										expr: macro return __call(
+										expr: macro @:pos(f.pos) return __call(
 											__iface,
 											$v{name},
 											${(args.map(arg -> arg.t):SignatureCode)},
