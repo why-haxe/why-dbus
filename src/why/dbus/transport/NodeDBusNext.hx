@@ -16,9 +16,11 @@ class NodeDBusNext implements Transport {
 		this.bus = bus;
 		
 		this.signals = new Signal(cb -> {
-			bus.on('message', function onMessage(message) switch fromNativeMessage(message) {
-				case msg = {type: Signal}: cb(msg);
-				case _: // swallow
+			bus.on('message', function onMessage(message) {
+				switch fromNativeMessage(message) {
+					case msg = {type: Signal}: cb(msg);
+					case _: // swallow
+				}
 			});
 			() -> bus.off('message', onMessage);
 		});
@@ -62,6 +64,7 @@ class NodeDBusNext implements Transport {
 	}
 	
 	static function fromNativeMessage(message:DBusMessage):Message {
+		// js.Node.console.log(js.node.Util.inspect(message, false, null, true));
 		return {
 			type: message.type,
 			serial: message.serial,
@@ -86,7 +89,7 @@ class NodeDBusNext implements Transport {
 				final obj = new DynamicAccess<Any>();
 				for(k => v in (value:Map<String, Any>)) obj.set(k, toNativeValue(s, v));
 				obj;
-			case Array(DictEntry(Int16 | UInt16 | Int32 | UInt32, s)):
+			case Array(DictEntry(Byte | Int16 | UInt16 | Int32 | UInt32, s)):
 				final obj = new DynamicAccess<Any>();
 				for(k => v in (value:Map<Int, Any>)) obj.set(cast k, toNativeValue(s, v));
 				obj;
@@ -108,7 +111,7 @@ class NodeDBusNext implements Transport {
 				final map = new Map<String, Any>();
 				for(k => v in (value:DynamicAccess<Any>)) map.set(k, fromNativeValue(s, v));
 				map;
-			case Array(DictEntry(Int16 | UInt16 | Int32 | UInt32, s)):
+			case Array(DictEntry(Byte | Int16 | UInt16 | Int32 | UInt32, s)):
 				final map = new Map<Int, Any>();
 				for(k => v in (value:DynamicAccess<Any>)) map.set(Std.parseInt(k), fromNativeValue(s, v));
 				map;

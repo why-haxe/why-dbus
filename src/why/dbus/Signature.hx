@@ -83,7 +83,9 @@ enum abstract SignatureCode(String) to String {
 				new SignatureCode('');
 			case _.getID() => 'Bool':
 				new SignatureCode('b');
-				
+
+			case _.getID() => 'why.dbus.types.UInt8':
+				new SignatureCode('y');
 			case _.getID() => 'why.dbus.types.Int16':
 				new SignatureCode('n');
 			case _.getID() => 'why.dbus.types.UInt16':
