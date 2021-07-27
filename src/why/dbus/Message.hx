@@ -2,18 +2,51 @@ package why.dbus;
 
 @:structInit
 class Message {
-	public final type:MessageType;
-	@:optional public final serial:Int;
-	@:optional public final destination:String;
-	@:optional public final path:String;
-	@:optional public final iface:String;
-	@:optional public final member:String;
-	@:optional public final signature:Signature.SignatureCode;
-	@:optional public final body:Array<Any>;
-	@:optional public final errorName:String;
-	@:optional public final replySerial:String;
-	@:optional public final flags:Int;
+	public final signature:Signature.SignatureCode;
+	public final body:Array<Any>;
 }
+
+@:structInit
+class OutgoingCallMessage extends Message {
+	public final destination:String;
+	public final path:String;
+	public final iface:String;
+	public final member:String;
+}
+
+@:structInit
+class IncomingCallMessage extends Message {
+	public final path:String;
+	public final iface:String;
+	public final member:String;
+}
+
+
+typedef IncomingReturnMessage = Message;
+typedef OutgoingReturnMessage = Message;
+
+@:structInit
+class IncomingSignalMessage extends Message {
+	public final sender:String;
+	public final path:String;
+	public final iface:String;
+	public final member:String;
+}
+
+@:structInit
+class OutgoingSignalMessage extends Message {
+	public final path:String;
+	public final iface:String;
+	public final member:String;
+}
+
+@:structInit
+private class ErrorMessage extends Message {
+	public final errorName:String;
+}
+
+typedef IncomingErrorMessage = ErrorMessage;
+typedef OutgoingErrorMessage = ErrorMessage;
 
 enum abstract MessageType(Int) to Int {
 	final MethodCall = 1;

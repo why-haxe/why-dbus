@@ -56,7 +56,6 @@ class ObjectBase {
 	
 	function __call<T>(iface, name, signature, body, parser, ?pos):Promise<T> {
 		return __transport.call({
-			type: MethodCall,
 			destination: __destination,
 			path: __path,
 			iface: iface,
