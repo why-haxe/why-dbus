@@ -9,8 +9,8 @@ class ObjectTest {
 	public function new() {}
 	
 	public function method() {
-		final transport = why.dbus.transport.NodeDBusNext.sessionBus();
-		final obj:Interface<org.freedesktop.DBus> = new Object<org.freedesktop.DBus>(transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+		final cnx = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final obj = cnx.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus);
 		obj.listNames()
 			.next(names -> {
 				for(name in names) asserts.assert(Std.is(name, String));
@@ -25,8 +25,8 @@ class ObjectTest {
 	}
 	
 	public function property() {
-		final transport = why.dbus.transport.NodeDBusNext.sessionBus();
-		final obj:Interface<org.freedesktop.DBus> = new Object<org.freedesktop.DBus>(transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+		final cnx = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final obj = cnx.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus);
 		obj.interfaces.get()
 			.next(values -> {
 				trace(values);
@@ -38,8 +38,8 @@ class ObjectTest {
 	}
 	
 	public function signal() {
-		final transport = why.dbus.transport.NodeDBusNext.sessionBus();
-		final obj:Interface<org.freedesktop.DBus> = new Object<org.freedesktop.DBus>(transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+		final cnx = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final obj = cnx.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus);
 		
 		var nameLostFired = false;
 		var nameAcquiredFired = false;
@@ -57,8 +57,8 @@ class ObjectTest {
 	}
 	
 	public function rawProperty() {
-		final transport = why.dbus.transport.NodeDBusNext.sessionBus();
-		final obj:Interface<org.freedesktop.DBus.Properties> = new Object<org.freedesktop.DBus.Properties>(transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+		final cnx = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final obj = cnx.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus.Properties);
 		obj.getAll('org.freedesktop.DBus')
 			.next(map -> {
 				final features = map['Features'];
