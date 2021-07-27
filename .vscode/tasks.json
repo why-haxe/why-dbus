@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "shell",
-			"command": "lix run travix node",
+			"command": "lix run travix node -D spawn-daemon",
 			"problemMatcher": [
 				"$haxe-absolute",
 				"$haxe",

@@ -15,7 +15,13 @@
 
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
+		"coenraads.bracket-pair-colorizer-2",
 		"dbaeumer.vscode-eslint",
+		"esbenp.prettier-vscode",
+		"vshaxe.haxe-extension-pack",
+		"lix.lix",
+		"vscode-icons-team.vscode-icons",
+		"wmaurer.change-case"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
