@@ -10,11 +10,19 @@ class ObjectBase {
 	final __transport:Transport;
 	final __destination:String;
 	final __path:String;
+	var __properties(get, null):Interface<org.freedesktop.DBus.Properties>;
 	
 	public function new(transport, destination, path) {
 		__transport = transport;
 		__destination = destination;
 		__path = path;
+		
+	}
+	
+	function get___properties() {
+		if(__properties == null)
+			__properties = new Object<org.freedesktop.DBus.Properties>(__transport, __destination, __path);
+		return __properties;
 	}
 	
 	function __signal<T>(iface:String, member:String, signature:SignatureCode):Signal<T> {
@@ -51,7 +59,7 @@ class ObjectBase {
 	}
 	
 	function __property<T>(iface, name, signature, optional):Property<T> {
-		return new Property<T>(__transport, __destination, __path, iface, name, signature, optional);
+		return new Property<T>(__properties, iface, name, signature, optional);
 	}
 	
 	function __call<T>(iface, name, signature, body, parser, ?pos):Promise<T> {
