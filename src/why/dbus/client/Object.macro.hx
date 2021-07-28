@@ -85,7 +85,7 @@ class Object {
 						}
 					}
 					
-					def.pack = ['why', 'dbus'];
+					def.pack = ['why', 'dbus', 'client'];
 					def;
 				case Failure(e):
 					ctx.pos.error(e);

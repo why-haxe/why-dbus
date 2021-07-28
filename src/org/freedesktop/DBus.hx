@@ -19,7 +19,7 @@ interface Properties {
 	final propertiesChanged:Signal<String, Map<String, Variant>, Array<String>>;
 	
 	function get(iface:String, name:String):Variant;
-	function getAll(interfaceName:String):Map<String, Variant>;
+	function getAll(iface:String):Map<String, Variant>;
 	function set(iface:String, name:String, value:Variant):Void;
 }
 

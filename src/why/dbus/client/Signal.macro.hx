@@ -36,7 +36,7 @@ class Signal {
 			
 			def.meta = [{pos: ctx.pos, name: ':forward'}];
 			def.kind = TDAbstract(signalCt, [signalCt], [signalCt]);
-			def.pack = ['why', 'dbus'];
+			def.pack = ['why', 'dbus', 'client'];
 			def;
 		});
 	}

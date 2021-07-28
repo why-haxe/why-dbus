@@ -17,6 +17,7 @@ class RunTests {
 		Runner.run(TestBatch.make([
 			new SignatureTest(),
 			new ObjectTest(),
+			new ServerTest(),
 		])).handle(Runner.exit);
 	}
 }
