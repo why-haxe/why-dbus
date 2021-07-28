@@ -21,24 +21,32 @@ class Connection {
 					final iface = $v{ct.toString()};
 					final target = $value;
 					final router = new why.dbus.server.Router<$ct>(path, iface, target);
+					final properties = new why.dbus.server.Properties<$ct>(target);
 					
 					// listen for incoming calls
 					transport.calls.handle(pair -> {
 						final message = pair.a;
-						if(message.path == path && message.iface == iface) {
-							final reply = pair.b;
-							router.route(message).handle(outcome -> {
-								switch outcome {
-									case Success(result):
-										reply.invoke(Success(result));
-									case Failure(error):
-										reply.invoke(Failure({
-											name: error.message,
-											signature: cast '', // TODO: encode error data
-											body: [], // TODO: encode error data
-										}));
-								}
+						final reply = (outcome:tink.core.Outcome<why.dbus.Message.OutgoingReturnMessage, Error>) -> {
+							pair.b.invoke(switch outcome {
+								case Success(result):
+									Success(result);
+								case Failure(error):
+									Failure(({
+										name: error.message,
+										signature: cast '', // TODO: encode error data
+										body: [], // TODO: encode error data
+									}:why.dbus.Message.OutgoingErrorMessage));
 							});
+						}
+						
+						if(message.path == path) {
+							if(message.iface == 'org.freedesktop.DBus.Properties') {
+								if(message.body[0] == iface) {
+									properties.route(message).handle(reply);
+								}
+							} else if(message.iface == iface) {
+								router.route(message).handle(reply);
+							}
 						}
 					});
 					

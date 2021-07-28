@@ -27,7 +27,7 @@ class Router {
 				public function route(message:$INCOMING):tink.core.Promise<$OUTGOING> {
 					final member = message.member;
 					final body = message.body;
-					return ${ESwitch(macro member, cases, macro tink.core.Promise.reject(new tink.core.Error('Unknown member "' + member  + '"'))).at()};
+					return ${ESwitch(macro member, cases, macro tink.core.Promise.reject(new tink.core.Error(BadRequest, 'Unknown member "' + member  + '"'))).at()};
 				}
 				
 				public function collect(cb:why.dbus.Message.OutgoingSignalMessage->Void):tink.core.Callback.CallbackLink {
@@ -74,17 +74,5 @@ class Router {
 			def.pack = ['why', 'dbus', 'server'];
 			def;
 		});
-	}
-	
-	static function unwrap(type:Type):Type {
-		final ct = type.toComplex();
-		
-		return
-			if(type.getID() == 'Void')
-				Context.getType('tink.core.Noise');
-			else Context.typeof(macro {
-				function get<A>(p:tink.core.Promise<A>):A throw null;
-				get((null:$ct));
-			});
 	}
 } 

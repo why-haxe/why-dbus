@@ -19,13 +19,14 @@ class NodeDBusNext implements Transport {
 		this.calls = new Signal(cb -> {
 			bus.on('message', function onMessage(message:NativeMessage) {
 				switch message.type {
-					case MethodCall: cb(new Pair(
-						(message:IncomingCallMessage),
-						(reply:Outcome<OutgoingReturnMessage, OutgoingErrorMessage>) -> bus.send(switch reply {
-							case Success(ret): message.createReturnMessage(ret);
-							case Failure(err): message.createErrorMessage(err);
-						})
-					));
+					case MethodCall:
+						cb(new Pair(
+							(message:IncomingCallMessage),
+							(reply:Outcome<OutgoingReturnMessage, OutgoingErrorMessage>) -> bus.send(switch reply {
+								case Success(ret): message.createReturnMessage(ret);
+								case Failure(err): message.createErrorMessage(err);
+							})
+						));
 					case _: // swallow
 				}
 			});

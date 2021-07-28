@@ -16,51 +16,50 @@ class ServerTest {
 		
 		final obj = cnx1.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus);
 		obj.requestName('why.dbus.ServerTest', 0)
-			.handle(_ -> cnx1.exportInterface('/path/to/object', (new Properties():org.freedesktop.DBus.Properties)));
+			.next(_ -> cnx1.exportInterface('/path/to/object', (new CustomServiceImpl():foo.CustomService)))
+			.next(_ -> {
+				final obj = cnx2.getInterface('why.dbus.ServerTest', '/path/to/object', foo.CustomService);
+				obj.getFoo()
+					.next(v -> asserts.assert(v == 1))
+					.next(_ -> obj.setFoo(2))
+					.next(_ -> obj.getFoo())
+					.next(v -> asserts.assert(v == 2))
+					.next(_ -> obj.foo.get())
+					.next(v -> asserts.assert(v == 2))
+					.next(_ -> obj.foo.set(3))
+					.next(_ -> obj.foo.get())
+					.next(v -> asserts.assert(v == 3));
+			})
+			.handle(asserts.handle);
 			
-		return asserts.done();
+		
+			
+		return asserts;
 	}
 }
 
 
-class Properties implements why.dbus.server.Interface<org.freedesktop.DBus.Properties> {
-	public final propertiesChanged:why.dbus.server.Signal<String, Map<String, Variant>, Array<String>> = tink.core.Signal.trigger();
-	
-	final interfaces:Map<String, Map<String, Variant>> = [];
+class CustomServiceImpl implements why.dbus.server.Interface<foo.CustomService> {
+	var foo:Int = 1;
 	
 	public function new() {}
 	
-	public function get(iface:String, name:String):Promise<Variant> {
-		return switch interfaces[iface] {
-			case null:
-				new Error(NotFound, 'Interface Not Found');
-			case _[name] => null:
-				new Error(NotFound, 'Property Not Found');
-			case _[name] => v:
-				v;
-		}
+	public function getFoo():Promise<Int> {
+		return foo;
 	}
 	
-	public function getAll(iface:String):Promise<Map<String, Variant>> {
-		return switch interfaces[iface] {
-			case null:
-				new Error(NotFound, 'Interface Not Found');
-			case v:
-				v;
-		} 
+	public function setFoo(v:Int):Promise<Noise> {
+		foo = v;
+		return Noise;
 	}
 	
-	public function set(iface:String, name:String, value:Variant):Promise<Noise> {
-		return switch interfaces[iface] {
-			case null:
-				new Error(NotFound, 'Interface Not Found');
-			case props:
-				final original = props[name];
-				props[name] = value;
-				// TODO: emit signal
-				// if(original.signature == value.signature) ...
-				
-				Promise.NOISE;
-		} 
+	public function get_foo():Promise<Int> {
+		return getFoo();
+	}
+	
+	public function set_foo(v:Int):Promise<Noise> {
+		return setFoo(v);
 	}
 }
+
+

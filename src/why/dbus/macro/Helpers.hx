@@ -1,6 +1,7 @@
 package why.dbus.macro;
 
 import haxe.macro.Expr;
+import haxe.macro.Context;
 import haxe.macro.Type;
 
 using Lambda;
@@ -26,5 +27,18 @@ class Helpers {
 			case _:
 				None;
 		}
+	}
+	
+	
+	public static function unwrap(type:Type):Type {
+		final ct = type.toComplex();
+		
+		return
+			if(type.getID() == 'Void')
+				Context.getType('tink.core.Noise');
+			else Context.typeof(macro {
+				function get<A>(p:tink.core.Promise<A>):A throw null;
+				get((null:$ct));
+			});
 	}
 }

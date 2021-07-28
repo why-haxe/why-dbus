@@ -37,18 +37,39 @@ class Interface {
 								});
 								
 							case t:
-								// final ct = t.toComplex();
-								// def.fields.push({
-								// 	access: [AFinal],
-								// 	name: f.name,
-								// 	pos: f.pos,
-								// 	kind: FVar(switch [f.meta.has(':readonly'), f.meta.has(':writeonly')] {
-								// 		case [true, true]: f.pos.error('Either @:readonly or @:writeonly, but not both');
-								// 		case [true, false]: macro:why.dbus.client.Property.ReadableProperty<$ct>;
-								// 		case [false, true]: macro:why.dbus.client.Property.WritableProperty<$ct>;
-								// 		case [false, false]: macro:why.dbus.client.Property.ReadWriteProperty<$ct>;
-								// 	}),
-								// });
+								final ct = t.toComplex();
+								
+								function addGetter()
+									def.fields.push({
+										name: 'get_' + f.name,
+										pos: f.pos,
+										kind: FFun({
+											args: [],
+											ret: macro:tink.core.Promise<$ct>,
+										}),
+									});
+								
+								function addSetter()
+									def.fields.push({
+										name: 'set_' + f.name,
+										pos: f.pos,
+										kind: FFun({
+											args: [({name: 'v', type: ct}:FunctionArg)],
+											ret: macro:tink.core.Promise<tink.core.Noise>,
+										}),
+									});
+									
+								switch [f.meta.has(':readonly'), f.meta.has(':writeonly')] {
+									case [true, true]:
+										f.pos.error('Either @:readonly or @:writeonly, but not both');
+									case [true, false]:
+										addGetter();
+									case [false, true]:
+										addSetter();
+									case [false, false]:
+										addGetter();
+										addSetter();
+								}
 						}
 					def.kind = TDClass(null, [], true, false, false);
 					def.pack = ['why', 'dbus', 'server'];
