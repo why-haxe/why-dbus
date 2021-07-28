@@ -22,26 +22,13 @@ class Connection {
 			transport.calls.handle(pair -> {
 				final message = pair.a;
 				
-				function reply(outcome:Outcome<OutgoingReturnMessage, Error>) {
-					pair.b.invoke(switch outcome {
-						case Success(result):
-							Success(result);
-						case Failure(error):
-							Failure(({
-								name: error.message,
-								signature: cast '', // TODO: encode error data
-								body: [], // TODO: encode error data
-							}:OutgoingErrorMessage));
-					});
-				}
-				
 				if(message.path == path) {
 					if(message.iface == 'org.freedesktop.DBus.Properties') {
 						if(message.body[0] == iface) {
-							properties.route(message).handle(reply);
+							properties.route(message).handle(o -> pair.b.invoke(createReply(o)));
 						}
 					} else if(message.iface == iface) {
-						router.route(message).handle(reply);
+						router.route(message).handle(o -> pair.b.invoke(createReply(o)));
 					}
 				}
 			}),
@@ -49,5 +36,18 @@ class Connection {
 			// forward signals
 			router.signals.handle(transport.emit),
 		];
+	}
+	
+	static function createReply(outcome:Outcome<OutgoingReturnMessage, Error>):Outcome<OutgoingReturnMessage, OutgoingErrorMessage> {
+		return switch outcome {
+			case Success(result):
+				Success(result);
+			case Failure(error):
+				Failure(({
+					name: error.message,
+					signature: cast '', // TODO: encode error data
+					body: [], // TODO: encode error data
+				}:OutgoingErrorMessage));
+		}
 	}
 }
