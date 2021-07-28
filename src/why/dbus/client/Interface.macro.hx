@@ -1,4 +1,4 @@
-package why.dbus;
+package why.dbus.client;
 
 import tink.macro.BuildCache;
 import haxe.macro.Expr;
@@ -9,7 +9,7 @@ using tink.MacroApi;
 
 class Interface {
 	public static function build() {
-		return BuildCache.getType('why.dbus.Interface', (ctx:BuildContext) -> {
+		return BuildCache.getType('why.dbus.client.Interface', (ctx:BuildContext) -> {
 			final name = ctx.name;
 			final type = ctx.type;
 			
@@ -33,7 +33,7 @@ class Interface {
 									access: [AFinal],
 									name: f.name,
 									pos: f.pos,
-									kind: FVar(f.type.toComplex()),
+									kind: FVar(TPath('why.dbus.client.Signal'.asTypePath(types.map(t -> TPType(t.toComplex()))))),
 								});
 								
 							case t:
@@ -44,9 +44,9 @@ class Interface {
 									pos: f.pos,
 									kind: FVar(switch [f.meta.has(':readonly'), f.meta.has(':writeonly')] {
 										case [true, true]: f.pos.error('Either @:readonly or @:writeonly, but not both');
-										case [true, false]: macro:why.dbus.Property.ReadableProperty<$ct>;
-										case [false, true]: macro:why.dbus.Property.WritableProperty<$ct>;
-										case [false, false]: macro:why.dbus.Property.ReadWriteProperty<$ct>;
+										case [true, false]: macro:why.dbus.client.Property.ReadableProperty<$ct>;
+										case [false, true]: macro:why.dbus.client.Property.WritableProperty<$ct>;
+										case [false, false]: macro:why.dbus.client.Property.ReadWriteProperty<$ct>;
 									}),
 								});
 						}

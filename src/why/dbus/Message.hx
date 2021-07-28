@@ -42,7 +42,7 @@ class OutgoingSignalMessage extends Message {
 
 @:structInit
 private class ErrorMessage extends Message {
-	public final errorName:String;
+	public final name:String;
 }
 
 typedef IncomingErrorMessage = ErrorMessage;

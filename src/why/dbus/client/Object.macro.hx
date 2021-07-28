@@ -1,16 +1,17 @@
-package why.dbus;
+package why.dbus.client;
 
 import why.dbus.Signature;
 import haxe.macro.Expr;
 import tink.macro.BuildCache;
 import why.dbus.macro.Helpers.*;
+import why.dbus.util.Tools.*;
 
 using tink.CoreApi;
 using tink.MacroApi;
 
 class Object {
 	public static function build() {
-		return BuildCache.getType('why.dbus.Object', (ctx:BuildContext) -> {
+		return BuildCache.getType('why.dbus.client.Object', (ctx:BuildContext) -> {
 			final name = ctx.name;
 			final type = ctx.type;
 			
@@ -21,7 +22,7 @@ class Object {
 					final iface = ct.toString();
 					final init = [];
 					
-					final def = macro class $name extends why.dbus.Object.ObjectBase implements why.dbus.Interface<$ct> {
+					final def = macro class $name extends why.dbus.client.Object.ObjectBase implements why.dbus.client.Interface<$ct> {
 						final __iface:String;
 						public function new(transport, destination, path) {
 							super(transport, destination, path);
@@ -40,7 +41,7 @@ class Object {
 							case TFun(args, ret):
 								final parser = {
 									final sig = SignatureCode.fromType(ret);
-									sig.isEmpty() ? macro why.dbus.Object.ObjectBase.__parseEmptyResponse : macro why.dbus.Object.ObjectBase.__parseResponse.bind(${sig});
+									sig.isEmpty() ? macro why.dbus.client.Object.ObjectBase.__parseEmptyResponse : macro why.dbus.client.Object.ObjectBase.__parseResponse.bind(${sig});
 								}
 							
 								def.fields.push({
@@ -65,7 +66,7 @@ class Object {
 									access: [APublic, AFinal],
 									name: f.name,
 									pos: f.pos,
-									kind: FVar(f.type.toComplex()),
+									kind: FVar(TPath('why.dbus.client.Signal'.asTypePath(types.map(t -> TPType(t.toComplex()))))),
 								});
 								
 								init.push(macro $i{f.name} = __signal(__iface, $v{name}, ${(types:SignatureCode)}));
@@ -77,7 +78,7 @@ class Object {
 									access: [APublic, AFinal],
 									name: f.name,
 									pos: f.pos,
-									kind: FVar(macro:why.dbus.Property<$ct>),
+									kind: FVar(macro:why.dbus.client.Property<$ct>),
 								});
 								
 								init.push(macro $i{f.name} = __property(__iface, $v{name}, ${SignatureCode.fromType(t)}, $v{optional}));
@@ -90,9 +91,5 @@ class Object {
 					ctx.pos.error(e);
 			}
 		});
-	}
-	
-	static function capitalize(v:String) {
-		return v.charAt(0).toUpperCase() + v.substr(1);
 	}
 }

@@ -9,11 +9,28 @@ import haxe.DynamicAccess;
 using tink.CoreApi;
 
 class NodeDBusNext implements Transport {
+	public final calls:Signal<Pair<IncomingCallMessage, Callback<Outcome<OutgoingReturnMessage, OutgoingErrorMessage>>>>;
 	public final signals:Signal<IncomingSignalMessage>;
 	final bus:DBus;
 	
 	public function new(bus) {
 		this.bus = bus;
+		
+		this.calls = new Signal(cb -> {
+			bus.on('message', function onMessage(message:NativeMessage) {
+				switch message.type {
+					case MethodCall: cb(new Pair(
+						(message:IncomingCallMessage),
+						(reply:Outcome<OutgoingReturnMessage, OutgoingErrorMessage>) -> bus.send(switch reply {
+							case Success(ret): message.createReturnMessage(ret);
+							case Failure(err): message.createErrorMessage(err);
+						})
+					));
+					case _: // swallow
+				}
+			});
+			() -> bus.off('message', onMessage);
+		});
 		
 		this.signals = new Signal(cb -> {
 			bus.on('message', function onMessage(message:NativeMessage) {
@@ -42,6 +59,11 @@ class NodeDBusNext implements Transport {
 					new why.dbus.Error(500, e.text, {type: e.type, message: ((e.reply:NativeMessage):IncomingErrorMessage)}, pos);
 			}
 		).next((native:NativeMessage) -> (native:IncomingReturnMessage));
+	}
+	
+	public function emit(message:OutgoingSignalMessage):Promise<Noise> {
+		bus.send((message:NativeMessage));
+		return Promise.NOISE;
 	}
 }
 
@@ -80,7 +102,7 @@ abstract NativeMessage(DBusMessage) from DBusMessage to DBusMessage {
 	@:to
 	function toErrorMessage():IncomingErrorMessage {
 		return {
-			errorName: this.errorName,
+			name: this.errorName,
 			signature: cast this.signature,
 			body: denativizeBody(),
 		}
@@ -112,15 +134,6 @@ abstract NativeMessage(DBusMessage) from DBusMessage to DBusMessage {
 	}
 	
 	@:from
-	static function fromReturnMessage(message:OutgoingReturnMessage):NativeMessage {
-		return new DBusMessage({
-			type: MessageType.MethodReturn,
-			signature: message.signature,
-			body: nativizeBody(message),
-		});
-	}
-	
-	@:from
 	static function fromSignalMessage(message:OutgoingSignalMessage):NativeMessage {
 		return new DBusMessage({
 			type: MessageType.Signal,
@@ -132,16 +145,24 @@ abstract NativeMessage(DBusMessage) from DBusMessage to DBusMessage {
 		});
 	}
 	
-	@:from
-	static function fromErrorMessage(message:OutgoingErrorMessage):NativeMessage {
+	public function createReturnMessage(message:OutgoingReturnMessage):NativeMessage {
+		return new DBusMessage({
+			type: MessageType.MethodReturn,
+			destination: this.sender,
+			replySerial: this.serial,
+			signature: message.signature,
+			body: nativizeBody(message),
+		});
+	}
+	
+	public function createErrorMessage(message:OutgoingErrorMessage):NativeMessage {
 		return new DBusMessage({
 			type: MessageType.Error,
-			errorName: message.errorName,
+			destination: this.sender,
+			replySerial: this.serial,
+			errorName: message.name,
 			signature: message.signature,
-			body: {
-				var i = 0;
-				[for(s in message.signature) nativizeValue(s, message.body[i++])];
-			},
+			body: nativizeBody(message),
 		});
 	}
 	
@@ -248,6 +269,7 @@ private extern class DBus {
 	static function systemBus():DBus;
 	static function sessionBus(?opt:{}):DBus;
 	function call(message:DBusMessage):js.lib.Promise<DBusMessage>;
+	function send(message:DBusMessage):Void;
 	function on(name:String, f:haxe.Constraints.Function):Void;
 	function off(name:String, f:haxe.Constraints.Function):Void;
 }
@@ -275,6 +297,7 @@ private extern class DBusMessage {
 	final flags:Int;
 	
 	function new(opt:{});
+	
 }
 
 @:jsRequire('dbus-next', 'DBusError')

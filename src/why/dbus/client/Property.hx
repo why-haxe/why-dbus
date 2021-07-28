@@ -1,4 +1,4 @@
-package why.dbus;
+package why.dbus.client;
 
 import why.dbus.types.Variant;
 

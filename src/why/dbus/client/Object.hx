@@ -1,9 +1,9 @@
-package why.dbus;
+package why.dbus.client;
 
 using why.dbus.Signature;
 using tink.CoreApi;
 
-@:genericBuild(why.dbus.Object.build())
+@:genericBuild(why.dbus.client.Object.build())
 class Object<T> {}
 
 class ObjectBase {
@@ -32,7 +32,7 @@ class ObjectBase {
 						None;
 				}
 			).handle(cb);
-			final registrar = new why.dbus.Object<org.freedesktop.DBus>(__transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
+			final registrar = new why.dbus.client.Object<org.freedesktop.DBus>(__transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
 			final rule = new why.dbus.MatchRule({type: Signal, sender: __destination, path: __path, iface: iface, member: member}).toString();
 			
 			registrar

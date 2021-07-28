@@ -79,7 +79,7 @@ enum abstract SignatureCode(String) to String {
 	@:from
 	public static function fromType(type:haxe.macro.Type):SignatureCode {
 		return switch type.reduce() {
-			case _.getID() => 'Void':
+			case _.getID() => 'Void' | 'tink.core.Noise':
 				new SignatureCode('');
 			case _.getID() => 'Bool':
 				new SignatureCode('b');

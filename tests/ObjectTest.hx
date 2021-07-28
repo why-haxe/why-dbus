@@ -9,7 +9,7 @@ class ObjectTest {
 	public function new() {}
 	
 	public function method() {
-		final cnx = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final cnx = new why.dbus.client.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
 		final obj = cnx.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus);
 		obj.listNames()
 			.next(names -> {
@@ -25,7 +25,7 @@ class ObjectTest {
 	}
 	
 	public function property() {
-		final cnx = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final cnx = new why.dbus.client.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
 		final obj = cnx.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus);
 		obj.interfaces.get()
 			.next(values -> {
@@ -38,7 +38,7 @@ class ObjectTest {
 	}
 	
 	public function signal() {
-		final cnx = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final cnx = new why.dbus.client.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
 		final obj = cnx.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus);
 		
 		var nameLostFired = false;
@@ -57,7 +57,7 @@ class ObjectTest {
 	}
 	
 	public function rawProperty() {
-		final cnx = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final cnx = new why.dbus.client.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
 		final obj = cnx.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus.Properties);
 		obj.getAll('org.freedesktop.DBus')
 			.next(map -> {

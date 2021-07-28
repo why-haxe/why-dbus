@@ -1,4 +1,4 @@
-package why.dbus;
+package why.dbus.client;
 
 class Connection {
 	final transport:Transport;
@@ -8,5 +8,5 @@ class Connection {
 	}
 	
 	public macro function getInterface(ethis, destination, path, iface);
-	// public macro function exportInterface(ethis, destination, path, instance);
+	public macro function exportInterface(ethis, destination, path, instance);
 }
