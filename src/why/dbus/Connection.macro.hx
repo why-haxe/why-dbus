@@ -13,17 +13,28 @@ class Connection {
 	// 	return macro (new why.dbus.client.Object<$ct>(@:privateAccess $ethis.transport, $destination, $path):why.dbus.client.Interface<$ct>);
 	// }
 	
-	public macro function exportInterface(ethis:Expr, path:ExprOf<String>, instance:Expr):ExprOf<CallbackLink> {
-		return switch instance {
-			case macro ($value:$ct):
-				macro {
-					final path = $path;
-					final iface = $v{ct.toString()};
-					final target = $value;
-					@:privateAccess $ethis.export(path, iface, new why.dbus.server.Router<$ct>(path, iface, target), new why.dbus.server.Properties<$ct>(target));
-				}
-			case _:
-				instance.pos.error('Expected check type syntax');
+	public macro function exportObject(ethis:Expr, path:ExprOf<String>, interfaces:Array<Expr>):ExprOf<CallbackLink> {
+		final vars:Array<Var> = [];
+		final routers = [];
+		final properties = [];
+		
+		for(i => iface in interfaces) {
+			switch iface {
+				case macro ($value:$ct):
+					final ident = 'v$i';
+					final iface = ct.toString();
+					vars.push({name: ident, expr: value});
+					routers.push(macro $v{iface} => new why.dbus.server.Router<$ct>(path, $v{iface}, $i{ident}));
+					properties.push(macro $v{iface} => new why.dbus.server.Properties<$ct>($i{ident}));
+				case _:
+					iface.pos.error('Expected check type syntax');
+			}
+		}
+		
+		return macro {
+			${EVars(vars).at()}
+			final path = $path;
+			@:privateAccess $ethis.export(new why.dbus.server.Object(path, ${macro $a{routers}}, ${macro $a{properties}}));
 		}
 	}
 }

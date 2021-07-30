@@ -20,27 +20,19 @@ class Connection {
 		return new why.dbus.client.Destination(transport, destination);
 	}
 	
-	public macro function exportInterface(ethis, path, instance);
+	public macro function exportObject(ethis, path, interfaces);
 	
-	function export<T>(path:String, iface:String, router:RouterBase<T>, properties:PropertiesBase<T>):CallbackLink {
+	function export(object:why.dbus.server.Object):CallbackLink {
 		return [
 			// listen for incoming calls
 			transport.calls.handle(pair -> {
 				final message = pair.a;
-				
-				if(message.path == path) {
-					if(message.iface == 'org.freedesktop.DBus.Properties') {
-						if(message.body[0] == iface) {
-							properties.route(message).handle(o -> pair.b.invoke(createReply(o)));
-						}
-					} else if(message.iface == iface) {
-						router.route(message).handle(o -> pair.b.invoke(createReply(o)));
-					}
-				}
+				if(message.path == object.path)
+					object.route(message).handle(o -> pair.b.invoke(createReply(o)));
 			}),
 			
 			// forward signals
-			router.signals.handle(transport.emit),
+			object.signals.handle(transport.emit),
 		];
 	}
 	

@@ -7,7 +7,12 @@ using tink.CoreApi;
 @:genericBuild(why.dbus.server.Router.build())
 class Router<T> {}
 
-abstract class RouterBase<T> {
+interface RouterObject {
+	final signals:Signal<OutgoingSignalMessage>;
+	function route(message:IncomingCallMessage):Promise<OutgoingReturnMessage>;
+}
+
+abstract class RouterBase<T> implements RouterObject {
 	public final path:String;
 	public final iface:String;
 	public final target:T;
@@ -17,7 +22,7 @@ abstract class RouterBase<T> {
 		this.path = path;
 		this.iface = iface;
 		this.target = target;
-		signals = new Signal(collect);
+		this.signals = new Signal(collect);
 	}
 	
 	public abstract function route(message:IncomingCallMessage):Promise<OutgoingReturnMessage>;

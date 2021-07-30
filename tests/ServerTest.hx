@@ -15,7 +15,7 @@ class ServerTest {
 		
 		
 		server.bus.requestName('why.dbus.ServerTest', 0)
-			.next(_ -> server.exportInterface('/path/to/object', (new CustomServiceImpl():foo.CustomService)))
+			.next(_ -> server.exportObject('/path/to/object', (new CustomServiceImpl():foo.CustomService)))
 			.next(_ -> {
 				final iface = client.getDestination('why.dbus.ServerTest').getObject('/path/to/object').getInterface(foo.CustomService);
 				iface.getFoo()

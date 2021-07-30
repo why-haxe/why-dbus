@@ -8,11 +8,13 @@ using tink.CoreApi;
 @:genericBuild(why.dbus.server.Properties.build())
 class Properties<T> {}
 
-abstract class PropertiesBase<T> {
+abstract class PropertiesBase<T> implements Router.RouterObject {
+	public final signals:Signal<OutgoingSignalMessage>;
 	public final target:T;
 	
 	public function new(target) {
 		this.target = target;
+		this.signals = new Signal(cb -> null); // TODO
 	}
 	
 	public function route(message:IncomingCallMessage):Promise<OutgoingReturnMessage> {
