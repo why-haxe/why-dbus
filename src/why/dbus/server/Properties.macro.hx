@@ -11,10 +11,38 @@ import why.dbus.macro.Helpers.*;
 using tink.MacroApi;
 
 class Properties {
+	public static function build() {
+		return BuildCache.getTypeN('why.dbus.server.Properties', (ctx:BuildContextN) -> {
+			final name = ctx.name;
+			final types = ctx.types;
+			final cts = types.map(t -> t.toComplex());
+			
+			final def = macro class $name extends why.dbus.server.Properties.PropertiesBase {}
+			
+			def.fields.push({
+				access: [APublic],
+				name: 'new',
+				pos: ctx.pos,
+				kind: FFun({
+					args: [for(i => ct in cts) {name: 'v$i', type: macro:why.dbus.server.Interface<$ct>}],
+					expr: {
+						final entries = [for(i => ct in cts) macro $v{ct.toString()} => new why.dbus.server.Properties.InterfaceProperties<$ct>($i{'v$i'})];
+						macro super(${macro $a{entries}});
+					}
+				}),
+			});
+			
+			def.pack = ['why', 'dbus', 'server'];
+			def;
+		});
+	}
+}
+
+class InterfaceProperties {
 	static final VARIANT = macro:why.dbus.types.Variant;
 	
 	public static function build() {
-		return BuildCache.getType('why.dbus.server.Properties', (ctx:BuildContext) -> {
+		return BuildCache.getType('why.dbus.server.InterfaceProperties', (ctx:BuildContext) -> {
 			final name = ctx.name;
 			final type = ctx.type;
 			final ct = type.toComplex();
@@ -23,7 +51,7 @@ class Properties {
 			final getAllCases:Array<Expr> = [];
 			final setCases:Array<Case> = [];
 			
-			final def = macro class $name extends why.dbus.server.Properties.PropertiesBase<why.dbus.server.Interface<$ct>> {
+			final def = macro class $name extends why.dbus.server.Properties.InterfacePropertiesBase<why.dbus.server.Interface<$ct>> {
 				function get(name:String):tink.core.Promise<$VARIANT> {
 					return ${ESwitch(macro name, getCases, macro new tink.core.Error(NotFound, 'Property not found')).at()}
 				}

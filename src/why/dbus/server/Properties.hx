@@ -1,45 +1,56 @@
 package why.dbus.server;
 
-import why.dbus.Message;
 import why.dbus.types.*;
 
 using tink.CoreApi;
 
 @:genericBuild(why.dbus.server.Properties.build())
-class Properties<T> {}
+class Properties<Rest> {}
 
-abstract class PropertiesBase<T> implements Router.RouterObject {
-	public final signals:Signal<OutgoingSignalMessage>;
-	public final target:T;
+class PropertiesBase implements Interface<org.freedesktop.DBus.Properties> {
+	public final propertiesChanged:why.dbus.server.Signal<String, Map<String, Variant>, Array<String>> = Signal.trigger(); // TODO
 	
-	public function new(target) {
-		this.target = target;
-		this.signals = new Signal(cb -> null); // TODO
+	final map:Map<String, InterfacePropertiesObject>;
+	
+	public function new(map) {
+		this.map = map;
 	}
 	
-	public function route(message:IncomingCallMessage):Promise<OutgoingReturnMessage> {
-		return switch message.member {
-			case 'Get':
-				get(message.body[1]).next(v -> ({
-					signature: Signature.Variant,
-					body: [v],
-				}:OutgoingReturnMessage));
-			case 'GetAll':
-				getAll().next(v -> ({
-					signature: Signature.Array(DictEntry(String, Variant)),
-					body: [v],
-				}:OutgoingReturnMessage));
-			case 'Set':
-				set(message.body[1], message.body[2]).next(v -> ({
-					signature: cast '',
-					body: [],
-				}:OutgoingReturnMessage));
-			case member:
-				new Error(BadRequest, 'Unknown member "' + member  + '"');
+	public function get(iface:String, name:String):Promise<Variant> {
+		return forward(iface, props -> props.get(name));
+	}
+	
+	public function getAll(iface:String):Promise<Map<String, Variant>> {
+		return forward(iface, props -> props.getAll());
+	}
+	
+	public function set(iface:String, name:String, value:Variant):Promise<Noise> {
+		return forward(iface, props -> props.set(name, value));
+	}
+	
+	inline function forward<T>(iface, f:InterfacePropertiesObject->Promise<T>):Promise<T> {
+		return switch map[iface] {
+			case null: new Error(NotFound, 'Interface Not Found');
+			case v: f(v);
 		}
 	}
 	
-	abstract function get(name:String):Promise<Variant>;
-	abstract function getAll():Promise<Map<String, Variant>>;
-	abstract function set(name:String, value:Variant):Promise<Noise>;
+}
+
+@:genericBuild(why.dbus.server.Properties.InterfaceProperties.build())
+class InterfaceProperties<T> {}
+
+interface InterfacePropertiesObject {
+	function get(name:String):Promise<Variant>;
+	function getAll():Promise<Map<String, Variant>>;
+	function set(name:String, value:Variant):Promise<Noise>;
+}
+
+abstract class InterfacePropertiesBase<T> implements InterfacePropertiesObject {
+	public final target:T;
+	public function new(target)
+		this.target = target;
+	public abstract function get(name:String):Promise<Variant>;
+	public abstract function getAll():Promise<Map<String, Variant>>;
+	public abstract function set(name:String, value:Variant):Promise<Noise>;
 }
