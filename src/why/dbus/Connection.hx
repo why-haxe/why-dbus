@@ -13,7 +13,10 @@ class Connection {
 		this.transport = transport;
 	}
 	
-	public macro function getInterface(ethis, destination, path, iface);
+	public inline function getObject(destination, path) {
+		return new why.dbus.client.Object(transport, destination, path);
+	}
+	
 	public macro function exportInterface(ethis, path, instance);
 	
 	function export<T>(path:String, iface:String, router:RouterBase<T>, properties:PropertiesBase<T>):CallbackLink {

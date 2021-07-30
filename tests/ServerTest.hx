@@ -14,20 +14,23 @@ class ServerTest {
 		final cnx2 = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
 		
 		
-		final obj = cnx1.getInterface('org.freedesktop.DBus', '/org/freedesktop/DBus', org.freedesktop.DBus);
-		obj.requestName('why.dbus.ServerTest', 0)
+		final obj = cnx1.getObject('org.freedesktop.DBus', '/org/freedesktop/DBus');
+		final iface = obj.getInterface(org.freedesktop.DBus);
+		
+		iface.requestName('why.dbus.ServerTest', 0)
 			.next(_ -> cnx1.exportInterface('/path/to/object', (new CustomServiceImpl():foo.CustomService)))
 			.next(_ -> {
-				final obj = cnx2.getInterface('why.dbus.ServerTest', '/path/to/object', foo.CustomService);
-				obj.getFoo()
+				final obj = cnx2.getObject('why.dbus.ServerTest', '/path/to/object');
+				final iface = obj.getInterface(foo.CustomService);
+				iface.getFoo()
 					.next(v -> asserts.assert(v == 1))
-					.next(_ -> obj.setFoo(2))
-					.next(_ -> obj.getFoo())
+					.next(_ -> iface.setFoo(2))
+					.next(_ -> iface.getFoo())
 					.next(v -> asserts.assert(v == 2))
-					.next(_ -> obj.foo.get())
+					.next(_ -> iface.foo.get())
 					.next(v -> asserts.assert(v == 2))
-					.next(_ -> obj.foo.set(3))
-					.next(_ -> obj.foo.get())
+					.next(_ -> iface.foo.set(3))
+					.next(_ -> iface.foo.get())
 					.next(v -> asserts.assert(v == 3));
 			})
 			.handle(asserts.handle);

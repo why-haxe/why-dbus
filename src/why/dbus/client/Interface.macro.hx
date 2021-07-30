@@ -1,8 +1,10 @@
 package why.dbus.client;
 
-import tink.macro.BuildCache;
+import why.dbus.Signature;
 import haxe.macro.Expr;
+import tink.macro.BuildCache;
 import why.dbus.macro.Helpers.*;
+import why.dbus.util.Tools.*;
 
 using tink.CoreApi;
 using tink.MacroApi;
@@ -15,42 +17,75 @@ class Interface {
 			
 			switch type.getFields() {
 				case Success(fields):
-					final def = macro class $name {}
-					for(f in fields)
+					
+					final ct = type.toComplex();
+					final iface = ct.toString();
+					final init = [];
+					
+					final def = macro class $name extends why.dbus.client.Interface.InterfaceBase {
+						final __iface:String;
+						public function new(transport, destination, path) {
+							super(transport, destination, path);
+							__iface = $v{iface};
+							$b{init}
+						}
+					}
+					
+					for(f in fields) {
+						final name = switch f.meta.extract(':member') {
+							case []: capitalize(f.name);
+							case [{params: [{expr: EConst(CString(name))}]}]: name;
+							case _: f.pos.error('Invalid use of @:member');
+						}
 						switch f.type.reduce() {
 							case TFun(args, ret):
+								final parser = {
+									final sig = SignatureCode.fromType(ret);
+									sig.isEmpty() ? macro why.dbus.client.Interface.InterfaceBase.__parseEmptyResponse : macro why.dbus.client.Interface.InterfaceBase.__parseResponse.bind(${sig});
+								}
+							
 								def.fields.push({
+									access: [APublic],
 									name: f.name,
 									pos: f.pos,
 									kind: FFun({
 										args: args.map(arg -> ({name: arg.name, type: arg.t.toComplex(), opt: arg.opt}:FunctionArg)),
 										ret: asynchronize(ret),
+										expr: macro @:pos(f.pos) return __call(
+											__iface,
+											$v{name},
+											${(args.map(arg -> arg.t):SignatureCode)},
+											$a{args.map(arg -> macro $i{arg.name})},
+											$parser
+										),
 									}),
 								});
-						
-							case getSignal(_) => Some(types): 
+								
+							case getSignal(_) => Some(types):
 								def.fields.push({
-									access: [AFinal],
+									access: [APublic, AFinal],
 									name: f.name,
 									pos: f.pos,
 									kind: FVar(TPath('why.dbus.client.Signal'.asTypePath(types.map(t -> TPType(t.toComplex()))))),
 								});
 								
+								init.push(macro $i{f.name} = __signal(__iface, $v{name}, ${(types:SignatureCode)}));
+								
 							case t:
+								final optional = f.meta.has(':optional');
 								final ct = t.toComplex();
 								def.fields.push({
-									access: [AFinal],
+									access: [APublic, AFinal],
 									name: f.name,
 									pos: f.pos,
-									kind: FVar(switch [f.meta.has(':readonly'), f.meta.has(':writeonly')] {
-										case [true, true]: f.pos.error('Either @:readonly or @:writeonly, but not both');
-										case [true, false]: macro:why.dbus.client.Property.ReadableProperty<$ct>;
-										case [false, true]: macro:why.dbus.client.Property.WritableProperty<$ct>;
-										case [false, false]: macro:why.dbus.client.Property.ReadWriteProperty<$ct>;
-									}),
+									kind: FVar(macro:why.dbus.client.Property<$ct>),
 								});
+								
+								init.push(macro $i{f.name} = __property(__iface, $v{name}, ${SignatureCode.fromType(t)}, $v{optional}));
 						}
-					def.kind = TDClass(null, [], true, false, false);
+					}
+					
+					trace(new haxe.macro.Printer().printTypeDefinition(def));
 					def.pack = ['why', 'dbus', 'client'];
 					def;
 				case Failure(e):

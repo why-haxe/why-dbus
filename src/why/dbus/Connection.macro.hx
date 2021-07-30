@@ -7,11 +7,11 @@ using tink.CoreApi;
 using tink.MacroApi;
 
 class Connection {
-	public macro function getInterface(ethis:Expr, destination:ExprOf<String>, path:ExprOf<String>, iface:Expr):Expr {
-		final type = Context.getType(iface.toString());
-		final ct = type.toComplex();
-		return macro (new why.dbus.client.Object<$ct>(@:privateAccess $ethis.transport, $destination, $path):why.dbus.client.Interface<$ct>);
-	}
+	// public macro function getInterface(ethis:Expr, destination:ExprOf<String>, path:ExprOf<String>, iface:Expr):Expr {
+	// 	final type = Context.getType(iface.toString());
+	// 	final ct = type.toComplex();
+	// 	return macro (new why.dbus.client.Object<$ct>(@:privateAccess $ethis.transport, $destination, $path):why.dbus.client.Interface<$ct>);
+	// }
 	
 	public macro function exportInterface(ethis:Expr, path:ExprOf<String>, instance:Expr):ExprOf<CallbackLink> {
 		return switch instance {
