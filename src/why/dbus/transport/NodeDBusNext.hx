@@ -5,6 +5,7 @@ import why.dbus.Message;
 import why.dbus.Transport;
 import why.dbus.Signature;
 import haxe.DynamicAccess;
+import haxe.Constraints;
 
 using tink.CoreApi;
 
@@ -17,8 +18,8 @@ class NodeDBusNext implements Transport {
 		this.bus = bus;
 		
 		this.calls = new Signal(cb -> {
-			bus.on('message', function onMessage(message:NativeMessage) {
-				switch message.type {
+			bus.addMethodHandler(function onMessage(message:NativeMessage) {
+				return switch message.type {
 					case MethodCall:
 						cb(new Pair(
 							(message:IncomingCallMessage),
@@ -27,10 +28,12 @@ class NodeDBusNext implements Transport {
 								case Failure(err): message.createErrorMessage(err);
 							})
 						));
-					case _: // swallow
+						true;
+					case _:
+						false; // skip
 				}
 			});
-			() -> bus.off('message', onMessage);
+			() -> bus.removeMethodHandler(onMessage);
 		});
 		
 		this.signals = new Signal(cb -> {
@@ -269,6 +272,8 @@ abstract NativeMessage(DBusMessage) from DBusMessage to DBusMessage {
 private extern class DBus {
 	static function systemBus():DBus;
 	static function sessionBus(?opt:{}):DBus;
+	function addMethodHandler(f:Function):Void;
+	function removeMethodHandler(f:Function):Void;
 	function call(message:DBusMessage):js.lib.Promise<DBusMessage>;
 	function send(message:DBusMessage):Void;
 	function on(name:String, f:haxe.Constraints.Function):Void;
