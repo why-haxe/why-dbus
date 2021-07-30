@@ -31,7 +31,7 @@ class ObjectTest {
 		final iface = obj.getInterface(org.freedesktop.DBus);
 		iface.interfaces.get()
 			.next(values -> {
-				trace(values);
+				// trace(values);
 				for(v in values) asserts.assert(Std.is(v, String));
 				Noise;
 			})
