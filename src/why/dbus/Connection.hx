@@ -7,14 +7,17 @@ import why.dbus.Message;
 using tink.CoreApi;
 
 class Connection {
+	public final bus:why.dbus.client.Interface<org.freedesktop.DBus>;
 	final transport:Transport;
 	
 	public function new(transport) {
 		this.transport = transport;
+		
+		bus = getDestination('org.freedesktop.DBus').getObject('/org/freedesktop/DBus').getInterface(org.freedesktop.DBus);
 	}
 	
-	public inline function getObject(destination, path) {
-		return new why.dbus.client.Object(transport, destination, path);
+	public inline function getDestination(destination) {
+		return new why.dbus.client.Destination(transport, destination);
 	}
 	
 	public macro function exportInterface(ethis, path, instance);

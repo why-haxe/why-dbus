@@ -7,30 +7,18 @@ using tink.CoreApi;
 class Interface<T> {}
 
 class InterfaceBase {
-	final __transport:Transport;
-	final __destination:String;
-	final __path:String;
-	var __properties(get, null):Interface<org.freedesktop.DBus.Properties>;
+	public final object:Object;
 	
-	public function new(transport, destination, path) {
-		__transport = transport;
-		__destination = destination;
-		__path = path;
-		
-	}
-	
-	function get___properties() {
-		if(__properties == null)
-			__properties = new Interface<org.freedesktop.DBus.Properties>(__transport, __destination, __path);
-		return __properties;
+	public function new(object:Object) {
+		this.object = object;
 	}
 	
 	function __signal<T>(iface:String, member:String, signature:SignatureCode):Signal<T> {
 		return new Signal(cb -> {
-			final binding = __transport.signals.select(
+			final binding = object.destination.transport.signals.select(
 				message -> {
 					return if(
-						(__path == null || message.path == __path) &&
+						(object.path == null || message.path == object.path) &&
 						message.iface == iface && 
 						message.member == member &&
 						message.signature == signature
@@ -40,8 +28,8 @@ class InterfaceBase {
 						None;
 				}
 			).handle(cb);
-			final registrar = new why.dbus.client.Interface<org.freedesktop.DBus>(__transport, 'org.freedesktop.DBus', '/org/freedesktop/DBus');
-			final rule = new why.dbus.MatchRule({type: Signal, sender: __destination, path: __path, iface: iface, member: member}).toString();
+			final registrar = object.destination.getObject('/org/freedesktop/DBus').getInterface(org.freedesktop.DBus);
+			final rule = new why.dbus.MatchRule({type: Signal, sender: object.destination.name, path: object.path, iface: iface, member: member}).toString();
 			
 			registrar
 				.addMatch(rule)
@@ -59,13 +47,13 @@ class InterfaceBase {
 	}
 	
 	function __property<T>(iface, name, signature, optional):Property<T> {
-		return new Property<T>(__properties, iface, name, signature, optional);
+		return new Property<T>(object.properties, iface, name, signature, optional);
 	}
 	
 	function __call<T>(iface, name, signature, body, parser, ?pos):Promise<T> {
-		return __transport.call({
-			destination: __destination,
-			path: __path,
+		return object.destination.transport.call({
+			destination: object.destination.name,
+			path: object.path,
 			iface: iface,
 			member: name,
 			signature: signature,

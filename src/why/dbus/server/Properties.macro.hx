@@ -49,18 +49,41 @@ class Properties {
 							case getSignal(_) => Some(types): 
 								// skip
 							case _:
+								var canRead = true, canWrite = true;
+								switch [f.meta.has(':readonly'), f.meta.has(':writeonly')] {
+									case [true, true]:
+										f.pos.error('Either @:readonly or @:writeonly, but not both');
+									case [true, false]:
+										canWrite = false;
+									case [false, true]:
+										canRead = false;
+									case [false, false]:
+										// skip
+								}
+								
 								getCases.push({
 									values: [macro $v{capitalize(f.name)}],
-									expr: macro target.$getter().next(v -> new why.dbus.types.Variant(${(f.type:SignatureCode)}, v)),
+									expr: 
+										if(canRead)
+											macro target.$getter().next(v -> new why.dbus.types.Variant(${(f.type:SignatureCode)}, v));
+										else
+											macro new tink.core.Error(NotFound, 'Member "' + $v{capitalize(f.name)} + '" not readable'),
 								});
-								getAllCases.push({
-									macro target.$getter()
-										.withSideEffect(v -> map[$v{capitalize(f.name)}] = new why.dbus.types.Variant(${(f.type:SignatureCode)}, v))
-										.noise();
-								});
+								getAllCases.push(
+									if(canRead)
+										macro target.$getter()
+											.withSideEffect(v -> map[$v{capitalize(f.name)}] = new why.dbus.types.Variant(${(f.type:SignatureCode)}, v))
+											.noise()
+									else
+										macro tink.core.Promise.NOISE
+								);
 								setCases.push({
 									values: [macro $v{capitalize(f.name)}],
-									expr: macro target.$setter(value.value),
+									expr:
+										if(canWrite)
+											macro target.$setter(value.value)
+										else
+											macro new tink.core.Error(NotFound, 'Member "' + $v{capitalize(f.name)} + '" not writable'),
 								});
 						}
 					}

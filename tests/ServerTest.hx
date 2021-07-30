@@ -10,18 +10,14 @@ class ServerTest {
 	public function new() {}
 	
 	public function test() {
-		final cnx1 = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
-		final cnx2 = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final server = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
+		final client = new why.dbus.Connection(why.dbus.transport.NodeDBusNext.sessionBus());
 		
 		
-		final obj = cnx1.getObject('org.freedesktop.DBus', '/org/freedesktop/DBus');
-		final iface = obj.getInterface(org.freedesktop.DBus);
-		
-		iface.requestName('why.dbus.ServerTest', 0)
-			.next(_ -> cnx1.exportInterface('/path/to/object', (new CustomServiceImpl():foo.CustomService)))
+		server.bus.requestName('why.dbus.ServerTest', 0)
+			.next(_ -> server.exportInterface('/path/to/object', (new CustomServiceImpl():foo.CustomService)))
 			.next(_ -> {
-				final obj = cnx2.getObject('why.dbus.ServerTest', '/path/to/object');
-				final iface = obj.getInterface(foo.CustomService);
+				final iface = client.getDestination('why.dbus.ServerTest').getObject('/path/to/object').getInterface(foo.CustomService);
 				iface.getFoo()
 					.next(v -> asserts.assert(v == 1))
 					.next(_ -> iface.setFoo(2))

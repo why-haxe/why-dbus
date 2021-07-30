@@ -24,8 +24,8 @@ class Interface {
 					
 					final def = macro class $name extends why.dbus.client.Interface.InterfaceBase {
 						final __iface:String;
-						public function new(transport, destination, path) {
-							super(transport, destination, path);
+						public function new(object) {
+							super(object);
 							__iface = $v{iface};
 							$b{init}
 						}
@@ -85,7 +85,6 @@ class Interface {
 						}
 					}
 					
-					trace(new haxe.macro.Printer().printTypeDefinition(def));
 					def.pack = ['why', 'dbus', 'client'];
 					def;
 				case Failure(e):
