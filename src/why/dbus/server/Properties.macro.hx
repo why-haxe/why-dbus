@@ -51,17 +51,22 @@ class InterfaceProperties {
 			final getAllCases:Array<Expr> = [];
 			final setCases:Array<Case> = [];
 			
-			final def = macro class $name extends why.dbus.server.Properties.InterfacePropertiesBase<why.dbus.server.Interface<$ct>> {
-				function get(name:String):tink.core.Promise<$VARIANT> {
+			final def = macro class $name implements why.dbus.server.Properties.InterfacePropertiesObject {
+				public final target:why.dbus.server.Interface<$ct>;
+				
+				public function new(target)
+					this.target = target;
+				
+				public function get(name:String):tink.core.Promise<$VARIANT> {
 					return ${ESwitch(macro name, getCases, macro new tink.core.Error(NotFound, 'Property not found')).at()}
 				}
 				
-				function getAll():tink.core.Promise<Map<String, $VARIANT>> {
+				public function getAll():tink.core.Promise<Map<String, $VARIANT>> {
 					final map = new Map<String, $VARIANT>();
 					return tink.core.Promise.inParallel(${macro $a{getAllCases}}).swap(map);
 				}
 				
-				function set(name:String, value:$VARIANT):tink.core.Promise<tink.core.Noise> {
+				public function set(name:String, value:$VARIANT):tink.core.Promise<tink.core.Noise> {
 					return ${ESwitch(macro name, setCases, macro new tink.core.Error(NotFound, 'Property not found')).at()}
 				}
 			}

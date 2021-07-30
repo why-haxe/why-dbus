@@ -45,12 +45,3 @@ interface InterfacePropertiesObject {
 	function getAll():Promise<Map<String, Variant>>;
 	function set(name:String, value:Variant):Promise<Noise>;
 }
-
-abstract class InterfacePropertiesBase<T> implements InterfacePropertiesObject {
-	public final target:T;
-	public function new(target)
-		this.target = target;
-	public abstract function get(name:String):Promise<Variant>;
-	public abstract function getAll():Promise<Map<String, Variant>>;
-	public abstract function set(name:String, value:Variant):Promise<Noise>;
-}
