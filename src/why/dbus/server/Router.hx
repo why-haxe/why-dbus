@@ -1,5 +1,6 @@
 package why.dbus.server;
 
+import why.dbus.Signature;
 import why.dbus.Message;
 
 using tink.CoreApi;
@@ -8,23 +9,25 @@ using tink.CoreApi;
 class Router<T> {}
 
 interface RouterObject {
-	final signals:Signal<OutgoingSignalMessage>;
+	final signals:Signal<SignalPayload>;
 	function route(message:IncomingCallMessage):Promise<OutgoingReturnMessage>;
 }
 
 abstract class RouterBase<T> implements RouterObject {
-	public final path:String;
-	public final iface:String;
 	public final target:T;
-	public final signals:Signal<OutgoingSignalMessage>;
+	public final signals:Signal<SignalPayload>;
 	
-	public function new(path, iface, target) {
-		this.path = path;
-		this.iface = iface;
+	public function new(target) {
 		this.target = target;
 		this.signals = new Signal(collect);
 	}
 	
 	public abstract function route(message:IncomingCallMessage):Promise<OutgoingReturnMessage>;
-	public abstract function collect(fire:OutgoingSignalMessage->Void):CallbackLink;
+	public abstract function collect(fire:SignalPayload->Void):CallbackLink;
+}
+
+typedef SignalPayload = {
+	final member:String;
+	final signature:SignatureCode;
+	final body:Array<Any>;
 }

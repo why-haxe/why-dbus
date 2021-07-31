@@ -30,7 +30,7 @@ class Router {
 					return ${ESwitch(macro member, cases, macro tink.core.Promise.reject(new tink.core.Error(BadRequest, 'Unknown member "' + member  + '"'))).at()};
 				}
 				
-				public function collect(cb:why.dbus.Message.OutgoingSignalMessage->Void):tink.core.Callback.CallbackLink {
+				public function collect(cb:why.dbus.server.Router.SignalPayload->Void):tink.core.Callback.CallbackLink {
 					return $a{listeners}
 				}
 			}
@@ -57,8 +57,6 @@ class Router {
 								
 							case getSignal(_) => Some(types): 
 								listeners.push(macro target.$fname.listen(body -> cb({
-									path: path,
-									iface: iface,
 									member: $v{capitalize(f.name)},
 									signature: ${(types:SignatureCode)},
 									body: body,

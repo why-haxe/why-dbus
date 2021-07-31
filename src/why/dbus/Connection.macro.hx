@@ -13,7 +13,7 @@ class Connection {
 		final propsParams = [];
 		final propsArgs = [];
 		final propsTp = 'why.dbus.server.Properties'.asTypePath(propsParams);
-		final routers = [macro 'org.freedesktop.DBus.Properties' => new why.dbus.server.Router<org.freedesktop.DBus.Properties>(path, 'org.freedesktop.DBus.Properties', new $propsTp($a{propsArgs}))];
+		final routers = [macro 'org.freedesktop.DBus.Properties' => new why.dbus.server.Router<org.freedesktop.DBus.Properties>(new $propsTp($a{propsArgs}))];
 		
 		for(i => iface in interfaces) {
 			switch iface {
@@ -21,7 +21,7 @@ class Connection {
 					final ident = 'v$i';
 					final iface = ct.toString();
 					vars.push({name: ident, expr: value});
-					routers.push(macro $v{iface} => new why.dbus.server.Router<$ct>(path, $v{iface}, $i{ident}));
+					routers.push(macro $v{iface} => new why.dbus.server.Router<$ct>($i{ident}));
 					propsParams.push(TPType(ct));
 					propsArgs.push(macro $i{ident});
 				case _:

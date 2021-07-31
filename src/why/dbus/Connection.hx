@@ -42,7 +42,7 @@ class Connection {
 				Success(result);
 			case Failure(error):
 				Failure(({
-					name: error.message,
+					name: error.message, // TODO: use well-known error names e.g. org.freedesktop.DBus.Error.InvalidArgs
 					signature: cast '', // TODO: encode error data
 					body: [], // TODO: encode error data
 				}:OutgoingErrorMessage));

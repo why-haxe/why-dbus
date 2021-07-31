@@ -14,7 +14,13 @@ class Object {
 	public function new(path, interfaces) {
 		this.path = path;
 		this.interfaces = interfaces;
-		this.signals = new Signal(cb -> [for(iface in interfaces) iface.signals.handle(cb)]);
+		this.signals = new Signal(cb -> [for(name => iface in interfaces) iface.signals.handle(payload -> cb(({
+			path: path,
+			iface: name,
+			member: payload.member,
+			signature: payload.signature,
+			body: payload.body,
+		}:OutgoingSignalMessage)))]);
 	}
 	
 	public function route(message:IncomingCallMessage):Promise<OutgoingReturnMessage> {
