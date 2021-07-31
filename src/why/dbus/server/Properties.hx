@@ -28,9 +28,9 @@ class PropertiesBase implements Interface<org.freedesktop.DBus.Properties> {
 		return forward(iface, props -> props.set(name, value));
 	}
 	
-	inline function forward<T>(iface, f:InterfacePropertiesObject->Promise<T>):Promise<T> {
+	inline function forward<T>(iface, f:InterfacePropertiesObject->Promise<T>, ?pos:haxe.PosInfos):Promise<T> {
 		return switch map[iface] {
-			case null: new Error(NotFound, 'Interface Not Found');
+			case null: new Error(NotFound, 'Interface Not Found', pos);
 			case v: f(v);
 		}
 	}
