@@ -12,10 +12,10 @@ class Tools {
 	public static function getInterfaceName(type:Type) {
 		return switch type {
 			case TInst(_.get() => {meta: meta}, _):
-				switch meta.extract(':dbus.name') {
+				switch meta.extract(':name') {
 					case []: type.toComplex().toString();
 					case [{params: [{expr: EConst(CString(v))}]}]: v;
-					case m: m[0].pos.error('Invalid use of @:dbus.name');
+					case m: m[0].pos.error('Invalid use of @:name');
 				}
 			case _:
 				throw '[why-dbus] Expected interface';
@@ -23,10 +23,10 @@ class Tools {
 	}
 	
 	public static function getMemberName(field:ClassField) {
-		return switch field.meta.extract(':dbus.name') {
+		return switch field.meta.extract(':name') {
 			case []: capitalize(field.name);
 			case [{params: [{expr: EConst(CString(v))}]}]: v;
-			case m: m[0].pos.error('Invalid use of @:dbus.name');
+			case m: m[0].pos.error('Invalid use of @:name');
 		}
 	}
 }
