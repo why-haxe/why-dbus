@@ -28,7 +28,7 @@ class InterfaceBase {
 						None;
 				}
 			).handle(cb);
-			final registrar = object.destination.getObject('/org/freedesktop/DBus').getInterface(org.freedesktop.DBus);
+			final registrar = object.destination.sibling('org.freedesktop.DBus').getObject('/org/freedesktop/DBus').getInterface(org.freedesktop.DBus);
 			final rule = new why.dbus.MatchRule({type: Signal, sender: object.destination.name, path: object.path, iface: iface, member: member}).toString();
 			
 			registrar

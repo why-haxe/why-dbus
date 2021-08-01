@@ -12,4 +12,8 @@ class Destination {
 	public inline function getObject(path):Object {
 		return new Object(this, path);
 	}
+	
+	public inline function sibling(name) {
+		return new Destination(transport, name);
+	}
 }

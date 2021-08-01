@@ -2,6 +2,7 @@ package;
 
 import why.dbus.*;
 import why.dbus.types.*;
+import why.dbus.server.Property;
 
 using tink.CoreApi;
 
@@ -16,6 +17,8 @@ class ServerTest {
 		
 		
 		final object = client.getDestination('why.dbus.ServerTest').getObject(path);
+		
+		// server.exportObject('/test/test', (null:org.freedesktop.DBus.ObjectManager));
 		
 		server.bus.requestName('why.dbus.ServerTest', 0)
 			.next(_ -> server.exportObject(path, (new FooCustomService():foo.CustomService), (new BarCustomService():bar.CustomService)))
@@ -69,48 +72,36 @@ class ServerTest {
 
 
 class FooCustomService implements why.dbus.server.Interface<foo.CustomService> {
-	var foo:Int = 1;
+	public final foo = {
+		var ref:Ref<Int> = 1; // TODO: https://github.com/HaxeFoundation/haxe/issues/10335
+		new Property(() -> ref.value, v -> {ref.value = v; Promise.NOISE;});
+	}
 	
 	public function new() {}
 	
 	public function getFoo():Promise<Int> {
-		return foo;
+		return foo.get();
 	}
 	
 	public function setFoo(v:Int):Promise<Noise> {
-		foo = v;
-		return Noise;
-	}
-	
-	public function get_foo():Promise<Int> {
-		return getFoo();
-	}
-	
-	public function set_foo(v:Int):Promise<Noise> {
-		return setFoo(v);
+		return foo.set(v);
 	}
 }
 
 class BarCustomService implements why.dbus.server.Interface<bar.CustomService> {
-	var bar:Int = 42;
+	public final bar = {
+		var ref:Ref<Int> = 42; // TODO: https://github.com/HaxeFoundation/haxe/issues/10335
+		new Property(() -> ref.value, v -> {ref.value = v; Promise.NOISE;});
+	}
 	
 	public function new() {}
 	
 	public function getBar():Promise<Int> {
-		return bar;
+		return bar.get();
 	}
 	
 	public function setBar(v:Int):Promise<Noise> {
-		bar = v;
-		return Noise;
-	}
-	
-	public function get_bar():Promise<Int> {
-		return getBar();
-	}
-	
-	public function set_bar(v:Int):Promise<Noise> {
-		return setBar(v);
+		return bar.set(v);
 	}
 }
 

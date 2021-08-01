@@ -4,8 +4,8 @@ import why.dbus.Signature;
 import haxe.macro.Expr;
 import tink.macro.BuildCache;
 import why.dbus.macro.Helpers.*;
-import why.dbus.util.Tools.*;
 
+using why.dbus.util.Tools;
 using tink.CoreApi;
 using tink.MacroApi;
 
@@ -19,7 +19,7 @@ class Interface {
 				case Success(fields):
 					
 					final ct = type.toComplex();
-					final iface = ct.toString();
+					final iface = type.getInterfaceName();
 					final init = [];
 					
 					final def = macro class $name extends why.dbus.client.Interface.InterfaceBase {
@@ -32,11 +32,8 @@ class Interface {
 					}
 					
 					for(f in fields) {
-						final name = switch f.meta.extract(':member') {
-							case []: capitalize(f.name);
-							case [{params: [{expr: EConst(CString(name))}]}]: name;
-							case _: f.pos.error('Invalid use of @:member');
-						}
+						final name = f.getMemberName();
+						
 						switch f.type.reduce() {
 							case TFun(args, ret):
 								final parser = {

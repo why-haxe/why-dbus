@@ -22,6 +22,7 @@ class Router {
 			
 			final cases:Array<Case> = [];
 			final listeners:Array<Expr> = [];
+			final collectBody = macro $a{listeners};
 			
 			final def = macro class $name extends why.dbus.server.Router.RouterBase<why.dbus.server.Interface<$ct>> {
 				public function route(message:$INCOMING):tink.core.Promise<$OUTGOING> {
@@ -31,7 +32,7 @@ class Router {
 				}
 				
 				public function collect(cb:why.dbus.server.Router.SignalPayload->Void):tink.core.Callback.CallbackLink {
-					return $a{listeners}
+					return $collectBody;
 				}
 			}
 			
@@ -67,6 +68,11 @@ class Router {
 					}
 				case Failure(e):
 					throw e;
+			}
+			
+			// optimization: return null CallbackLink if there are no listeners
+			if(listeners.length == 0) {
+				collectBody.expr = EConst(CIdent('null'));
 			}
 			
 			def.pack = ['why', 'dbus', 'server'];

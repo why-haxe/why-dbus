@@ -5,9 +5,9 @@ import haxe.macro.Context;
 import haxe.macro.Type;
 import tink.macro.BuildCache;
 import why.dbus.Signature;
-import why.dbus.util.Tools.*;
 import why.dbus.macro.Helpers.*;
 
+using why.dbus.util.Tools;
 using tink.MacroApi;
 
 class Properties {
@@ -26,7 +26,10 @@ class Properties {
 				kind: FFun({
 					args: [for(i => ct in cts) {name: 'v$i', type: macro:why.dbus.server.Interface<$ct>}],
 					expr: {
-						final entries = [for(i => ct in cts) macro $v{ct.toString()} => new why.dbus.server.Properties.InterfaceProperties<$ct>($i{'v$i'})];
+						final entries = [for(i => type in types) {
+							final ct = cts[i];
+							macro $v{type.getInterfaceName()} => new why.dbus.server.Properties.InterfaceProperties<$ct>($i{'v$i'});
+						}];
 						macro super(${macro $a{entries}});
 					}
 				}),
@@ -74,8 +77,8 @@ class InterfaceProperties {
 			switch type.getFields() {
 				case Success(fields):
 					for(f in fields) {
-						final getter = 'get_' + f.name;
-						final setter = 'set_' + f.name;
+						final fname = f.name;
+						final member = f.getMemberName();
 						switch f.type.reduce() {
 							case TFun(args, unwrap(_) => ret):
 								// skip
@@ -95,28 +98,28 @@ class InterfaceProperties {
 								}
 								
 								getCases.push({
-									values: [macro $v{capitalize(f.name)}],
+									values: [macro $v{member}],
 									expr: 
 										if(canRead)
-											macro target.$getter().next(v -> new why.dbus.types.Variant(${(f.type:SignatureCode)}, v));
+											macro target.$fname.get().next(v -> new why.dbus.types.Variant(${(f.type:SignatureCode)}, v));
 										else
-											macro new tink.core.Error(NotFound, 'Member "' + $v{capitalize(f.name)} + '" not readable'),
+											macro new tink.core.Error(NotFound, 'Member "' + $v{member} + '" not readable'),
 								});
 								getAllCases.push(
 									if(canRead)
-										macro target.$getter()
-											.withSideEffect(v -> map[$v{capitalize(f.name)}] = new why.dbus.types.Variant(${(f.type:SignatureCode)}, v))
+										macro target.$fname.get()
+											.withSideEffect(v -> map[$v{member}] = new why.dbus.types.Variant(${(f.type:SignatureCode)}, v))
 											.noise()
 									else
 										macro tink.core.Promise.NOISE
 								);
 								setCases.push({
-									values: [macro $v{capitalize(f.name)}],
+									values: [macro $v{member}],
 									expr:
 										if(canWrite)
-											macro target.$setter(value.value)
+											macro target.$fname.set(value.value)
 										else
-											macro new tink.core.Error(NotFound, 'Member "' + $v{capitalize(f.name)} + '" not writable'),
+											macro new tink.core.Error(NotFound, 'Member "' + $v{member} + '" not writable'),
 								});
 						}
 					}

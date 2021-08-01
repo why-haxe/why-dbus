@@ -3,6 +3,7 @@ package why.dbus;
 import haxe.macro.Context;
 import haxe.macro.Expr;
 
+using why.dbus.util.Tools;
 using tink.CoreApi;
 using tink.MacroApi;
 
@@ -19,7 +20,7 @@ class Connection {
 			switch iface {
 				case macro ($value:$ct):
 					final ident = 'v$i';
-					final iface = ct.toString();
+					final iface = ct.toType().sure().getInterfaceName();
 					vars.push({name: ident, expr: value});
 					routers.push(macro $v{iface} => new why.dbus.server.Router<$ct>($i{ident}));
 					propsParams.push(TPType(ct));
@@ -31,8 +32,7 @@ class Connection {
 		
 		return macro {
 			${EVars(vars).at()}
-			final path = $path;
-			@:privateAccess $ethis.export(new why.dbus.server.Object(path, ${macro $a{routers}}));
+			@:privateAccess $ethis.export(new why.dbus.server.Object($path, ${macro $a{routers}}));
 		}
 	}
 }

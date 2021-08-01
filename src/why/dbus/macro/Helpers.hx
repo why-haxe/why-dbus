@@ -10,6 +10,7 @@ using tink.MacroApi;
 using tink.CoreApi;
 
 class Helpers {
+	
 	public static function asynchronize(type:Type):ComplexType {
 		return switch type.getID() {
 			case 'Void':
