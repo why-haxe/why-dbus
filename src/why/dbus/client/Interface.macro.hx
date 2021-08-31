@@ -63,22 +63,44 @@ class Interface {
 									access: [APublic, AFinal],
 									name: f.name,
 									pos: f.pos,
-									kind: FVar(TPath('why.dbus.client.Signal'.asTypePath(types.map(t -> TPType(t.toComplex()))))),
+									kind: FProp('get', 'null', TPath('why.dbus.client.Signal'.asTypePath(types.map(t -> TPType(t.toComplex()))))),
 								});
 								
-								init.push(macro $i{f.name} = __signal(__iface, $v{name}, ${(types:SignatureCode)}));
+								def.fields.push({
+									access: [],
+									name: 'get_' + f.name,
+									pos: f.pos,
+									kind: FFun({
+										args: [],
+										expr: macro {
+											if($i{f.name} == null) $i{f.name} = __signal(__iface, $v{name}, ${(types:SignatureCode)});
+											return $i{f.name}
+										}
+									}),
+								});
 								
 							case t:
 								final optional = f.meta.has(':optional');
 								final ct = t.toComplex();
 								def.fields.push({
-									access: [APublic, AFinal],
+									access: [APublic],
 									name: f.name,
 									pos: f.pos,
-									kind: FVar(macro:why.dbus.client.Property<$ct>),
+									kind: FProp('get', 'null', macro:why.dbus.client.Property<$ct>),
 								});
 								
-								init.push(macro $i{f.name} = __property(__iface, $v{name}, ${SignatureCode.fromType(t)}, $v{optional}));
+								def.fields.push({
+									access: [],
+									name: 'get_' + f.name,
+									pos: f.pos,
+									kind: FFun({
+										args: [],
+										expr: macro {
+											if($i{f.name} == null) $i{f.name} = __property(__iface, $v{name}, ${SignatureCode.fromType(t)}, $v{optional});
+											return $i{f.name}
+										}
+									}),
+								});
 						}
 					}
 					
