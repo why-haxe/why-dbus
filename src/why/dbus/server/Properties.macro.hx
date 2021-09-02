@@ -53,12 +53,16 @@ class InterfaceProperties {
 			final getCases:Array<Case> = [];
 			final getAllCases:Array<Expr> = [];
 			final setCases:Array<Case> = [];
+			final listeners:Array<Expr> = [];
 			
 			final def = macro class $name implements why.dbus.server.Properties.InterfacePropertiesObject {
+				public final changed:tink.core.Signal<tink.core.Named<why.dbus.types.Variant>>;
 				public final target:why.dbus.server.Interface<$ct>;
 				
-				public function new(target)
+				public function new(target) {
 					this.target = target;
+					this.changed = new tink.core.Signal(cb -> $a{listeners});
+				}
 				
 				public function get(name:String):tink.core.Promise<$VARIANT> {
 					return ${ESwitch(macro name, getCases, macro new tink.core.Error(NotFound, 'Property not found')).at()}
@@ -121,6 +125,7 @@ class InterfaceProperties {
 										else
 											macro new tink.core.Error(NotFound, 'Member "' + $v{member} + '" not writable'),
 								});
+								listeners.push(macro target.$fname.changed.handle(v -> cb(new tink.core.Named($v{member}, new why.dbus.types.Variant(${(f.type:SignatureCode)}, v)))));
 						}
 					}
 				case Failure(e):

@@ -14,7 +14,7 @@ class Signal {
 			final name = ctx.name;
 			final tupleTp = 'why.dbus.Body'.asTypePath(ctx.types.map(t -> TPType(t.toComplex())));
 			final tupleCt = TPath(tupleTp);
-			final signalCt = TPath('tink.core.Signal.SignalTrigger'.asTypePath([TPType(tupleCt)]));
+			final signalCt = TPath('tink.core.Signal.Signal'.asTypePath([TPType(tupleCt)]));
 			
 			final def = macro class $name {}
 			
@@ -30,20 +30,7 @@ class Signal {
 							final name = 'v$i';
 							macro body.$name;
 						}];
-						macro return this.asSignal().handle(body -> f($a{args}));
-					},
-				})
-			});
-			
-			def.fields.push({
-				access: [APublic, AInline],
-				name: 'emit',
-				pos: ctx.pos,
-				kind: FFun({
-					args: [for(i in 0...ctx.types.length) ({name: 'v$i', type: ctx.types[i].toComplex()}:FunctionArg)],
-					expr: {
-						final callArgs = [for(i in 0...ctx.types.length) macro $i{'v$i'}];
-						macro this.trigger(new $tupleTp($a{callArgs}));
+						macro return this.handle(body -> f($a{args}));
 					},
 				})
 			});

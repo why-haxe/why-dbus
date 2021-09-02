@@ -24,6 +24,10 @@ class ServerTest {
 			.next(_ -> server.exportObject(path, (new FooCustomService():foo.CustomService), (new BarCustomService():bar.CustomService)))
 			.next(_ -> {
 				final iface = object.getInterface(foo.CustomService);
+				
+				final changes = [];
+				iface.foo.changed.handle(o -> changes.push(o));
+				
 				iface.getFoo()
 					.next(v -> asserts.assert(v == 1))
 					.next(_ -> iface.setFoo(2))
@@ -33,10 +37,15 @@ class ServerTest {
 					.next(v -> asserts.assert(v == 2))
 					.next(_ -> iface.foo.set(3))
 					.next(_ -> iface.foo.get())
-					.next(v -> asserts.assert(v == 3));
+					.next(v -> asserts.assert(v == 3))
+					.next(v -> asserts.assert(changes.join(',') == '2,3'));
 			})
 			.next(_ -> {
 				final iface = object.getInterface(bar.CustomService);
+				
+				final changes = [];
+				iface.bar.changed.handle(o -> changes.push(o));
+				
 				iface.getBar()
 					.next(v -> asserts.assert(v == 42))
 					.next(_ -> iface.setBar(43))
@@ -46,7 +55,8 @@ class ServerTest {
 					.next(v -> asserts.assert(v == 43))
 					.next(_ -> iface.bar.set(44))
 					.next(_ -> iface.bar.get())
-					.next(v -> asserts.assert(v == 44));
+					.next(v -> asserts.assert(v == 44))
+					.next(v -> asserts.assert(changes.join(',') == '43,44'));
 			})
 			.next(_ -> {
 				final iface = object.getInterface(org.freedesktop.DBus.Properties);

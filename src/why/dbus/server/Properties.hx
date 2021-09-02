@@ -8,12 +8,16 @@ using tink.CoreApi;
 class Properties<Rest> {}
 
 class PropertiesBase implements Interface<org.freedesktop.DBus.Properties> {
-	public final propertiesChanged:why.dbus.server.Signal<String, Map<String, Variant>, Array<String>> = Signal.trigger(); // TODO
+	public final propertiesChanged:why.dbus.server.Signal<String, Map<String, Variant>, Array<String>>;
 	
 	final map:Map<String, InterfacePropertiesObject>;
 	
 	public function new(map) {
 		this.map = map;
+		
+		this.propertiesChanged = new tink.core.Signal(cb -> {
+			[for(iface => inst in map) inst.changed.handle(v -> cb(new why.dbus.Body<String, Map<String, Variant>, Array<String>>(iface, [v.name => v.value], [])))];
+		});
 	}
 	
 	public function get(iface:String, name:String):Promise<Variant> {
@@ -41,6 +45,7 @@ class PropertiesBase implements Interface<org.freedesktop.DBus.Properties> {
 class InterfaceProperties<T> {}
 
 interface InterfacePropertiesObject {
+	final changed:tink.core.Signal<Named<Variant>>;
 	function get(name:String):Promise<Variant>;
 	function getAll():Promise<Map<String, Variant>>;
 	function set(name:String, value:Variant):Promise<Noise>;
