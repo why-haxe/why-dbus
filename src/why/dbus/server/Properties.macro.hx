@@ -125,7 +125,10 @@ class InterfaceProperties {
 										else
 											macro new tink.core.Error(NotFound, 'Member "' + $v{member} + '" not writable'),
 								});
-								listeners.push(macro target.$fname.changed.handle(v -> cb(new tink.core.Named($v{member}, new why.dbus.types.Variant(${(f.type:SignatureCode)}, v)))));
+								if(canRead)
+									listeners.push(macro target.$fname.changed.handle(v -> {
+										cb(new tink.core.Named($v{member}, new why.dbus.types.Variant(${(f.type:SignatureCode)}, v)));
+									}));
 						}
 					}
 				case Failure(e):

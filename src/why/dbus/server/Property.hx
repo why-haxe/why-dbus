@@ -52,37 +52,13 @@ class Property<T> implements ReadWriteProperty<T> {
 	}
 }
 
-class ReadonlyProperty<T> implements ReadableProperty<T> {
-	final _get:Getter<T>;
-	public function new(get) {
-		_get = get;
-	}
-	public function get():Promise<T> {
-		return _get();
-	}
-}
-
-class WriteonlyProperty<T> implements WritableProperty<T> {
-	public final changed:Signal<T>;
-	final _set:Setter<T>;
-	final _changed:SignalTrigger<T>;
-	public function new(set) {
-		_set = set;
-		changed = _changed = Signal.trigger();
-	}
-	public function set(v:T):Promise<Noise> {
-		_changed.trigger(v);
-		return _set(v);
-	}
-}
-
 interface ReadWriteProperty<T> extends ReadableProperty<T> extends WritableProperty<T> {}
 
 interface ReadableProperty<T> {
+	final changed:Signal<T>;
 	function get():Promise<T>;
 }
 
 interface WritableProperty<T> {
-	final changed:Signal<T>;
 	function set(value:T):Promise<Noise>;
 }
