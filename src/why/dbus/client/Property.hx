@@ -19,16 +19,14 @@ class Property<T> implements ReadWriteProperty<T> {
 		this.name = name;
 		this.signature = signature;
 		this.optional = optional;
-		this.changed = properties.propertiesChanged.select(v -> {
-			if(v.v0 == iface) {
-				switch v.v1.get(name) {
-					case null: None;
-					case variant: Some((variant.value:T));
+		this.changed = new Signal(cb -> properties.propertiesChanged.handle((iface, updated, invalidated) -> {
+			if(iface == this.iface) {
+				switch updated.get(name) {
+					case null: // skip
+					case variant: cb((variant.value:T));
 				}
-			} else {
-				None;
 			}
-		});
+		}));
 	}
 	
 	public function get():Promise<T> {

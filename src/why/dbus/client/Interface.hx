@@ -15,19 +15,16 @@ class InterfaceBase {
 	
 	function __signal<T>(iface:String, member:String, signature:SignatureCode):Signal<T> {
 		return new Signal(cb -> {
-			final binding = object.destination.transport.signals.select(
-				message -> {
-					return if(
+			final binding = object.destination.transport.signals.handle(
+				message -> 
+					if(
 						(object.path == null || message.path == object.path) &&
 						message.iface == iface && 
 						message.member == member &&
 						message.signature == signature
 					)
-						Some(cast message.body);
-					else
-						None;
-				}
-			).handle(cb);
+						cb(cast message.body)
+			);
 			final registrar = object.destination.sibling('org.freedesktop.DBus').getObject('/org/freedesktop/DBus').getInterface(org.freedesktop.DBus);
 			final rule = new why.dbus.MatchRule({type: Signal, sender: object.destination.name, path: object.path, iface: iface, member: member}).toString();
 			
